@@ -1,0 +1,105 @@
+#!/usr/bin/env bash
+# Decides whether main needs a release and, if so, which version and changelog.
+#
+# Output (key=value lines, appended to $GITHUB_OUTPUT when set):
+#   release=true|false   version=X.Y.Z   tag=vX.Y.Z
+# The changelog (one "* line" per change) is written to $CHANGELOG_FILE.
+#
+# Rules:
+# - Only strict vMAJOR.MINOR.PATCH tags count as previous releases.
+# - A release happens only when a shipped file changed since the last release
+#   (see shipped_paths: what Claude Code loads from the plugin). README, CI and
+#   other repo files make no release.
+# - Bump: patch, or minor/major when a released PR has the label
+#   release:minor / release:major (the highest wins).
+# - Changelog: the titles of the issues closed by the released PRs; a commit
+#   without a PR or linked issue contributes its subject line instead.
+# - No previous release: version = .claude-plugin/plugin.json "version"
+#   (or 1.0.0), changelog "Initial release."
+#
+# Needs: git with full history and tags, jq, gh (GH_TOKEN), GITHUB_REPOSITORY.
+set -euo pipefail
+
+: "${GITHUB_REPOSITORY:?GITHUB_REPOSITORY must be set (owner/repo)}"
+CHANGELOG_FILE=${CHANGELOG_FILE:-changelog.txt}
+out() { echo "$1"; if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "$1" >> "$GITHUB_OUTPUT"; fi; }
+
+# Files that are part of the installed plugin. Reads paths on stdin, prints the shipped ones.
+shipped_paths() { grep -E '^(\.claude-plugin/|skills/|commands/|agents/|hooks/|scripts/|rules\.md$|\.mcp\.json$)' || true; }
+
+semver='^v[0-9]+\.[0-9]+\.[0-9]+$'
+last=$(git tag --list 'v*' --merged HEAD --sort=-v:refname | grep -E "$semver" | head -n 1 || true)
+
+if [ -z "$last" ]; then
+	version=$(jq -r '.version // empty' .claude-plugin/plugin.json)
+	[[ "v$version" =~ $semver ]] || version=1.0.0
+	echo "No previous release; first release will be $version."
+	printf '* Initial release.\n' > "$CHANGELOG_FILE"
+	out "release=true"
+	out "version=$version"
+	out "tag=v$version"
+	exit 0
+fi
+
+echo "Last release: $last"
+changes=$(git diff --name-only "$last" HEAD | shipped_paths)
+if [ -z "$changes" ]; then
+	echo "No plugin files changed since $last: no release."
+	out "release=false"
+	exit 0
+fi
+echo "Plugin files changed since $last:"
+printf '%s\n' "$changes" | sed 's/^/  /'
+
+bump=patch
+seen_issues=" "
+: > "$CHANGELOG_FILE"
+
+# Oldest first, so the changelog reads in merge order.
+for sha in $(git rev-list --reverse --no-merges "$last"..HEAD); do
+	shipped=$(git diff-tree --no-commit-id --name-only -r "$sha" | shipped_paths)
+	subject=$(git log -1 --format=%s "$sha")
+	if [ -z "$shipped" ]; then
+		echo "  skip   ${sha:0:7} $subject (no plugin files)"
+		continue
+	fi
+	echo "  ship   ${sha:0:7} $subject"
+
+	pr=$(gh api "repos/$GITHUB_REPOSITORY/commits/$sha/pulls" --jq '.[0].number // empty' 2>/dev/null || true)
+	[[ "$pr" =~ ^[0-9]+$ ]] || pr=""   # on an API error gh prints the error body instead
+	lines=""
+	if [ -n "$pr" ]; then
+		labels=$(gh api "repos/$GITHUB_REPOSITORY/issues/$pr/labels" --jq '.[].name')
+		if grep -qx 'release:major' <<<"$labels"; then bump=major
+		elif grep -qx 'release:minor' <<<"$labels" && [ "$bump" != major ]; then bump=minor
+		fi
+		issues=$(gh api graphql -F owner="${GITHUB_REPOSITORY%/*}" -F name="${GITHUB_REPOSITORY#*/}" -F pr="$pr" -f query='
+			query($owner: String!, $name: String!, $pr: Int!) {
+				repository(owner: $owner, name: $name) {
+					pullRequest(number: $pr) {
+						closingIssuesReferences(first: 50) { nodes { number title } }
+					}
+				}
+			}' --jq '.data.repository.pullRequest.closingIssuesReferences.nodes[] | "\(.number)\t\(.title)"')
+		while IFS=$'\t' read -r num title; do
+			[ -n "$num" ] || continue
+			case "$seen_issues" in *" $num "*) continue ;; esac
+			seen_issues+="$num "
+			lines+="* $title (#$num)"$'\n'
+		done <<<"$issues"
+	fi
+	[ -n "$lines" ] || lines="* $subject"$'\n'
+	printf '%s' "$lines" >> "$CHANGELOG_FILE"
+done
+[ -s "$CHANGELOG_FILE" ] || printf '* Maintenance release.\n' > "$CHANGELOG_FILE"
+
+IFS=. read -r major minor patch <<<"${last#v}"
+case "$bump" in
+	major) version="$((major + 1)).0.0" ;;
+	minor) version="$major.$((minor + 1)).0" ;;
+	*)     version="$major.$minor.$((patch + 1))" ;;
+esac
+echo "Bump: $bump -> $version"
+out "release=true"
+out "version=$version"
+out "tag=v$version"
