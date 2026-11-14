@@ -33,7 +33,7 @@ Ask everything at once, with the recommended answer first:
   - *wporg*. Plugins only: themes aren't deployed to WordPress.org by SVN.
 
   `DEPLOY_ENABLED` stays `false` whatever they choose.
-- **Tooling group:** add CI, coding standards, PHPStan and local Docker from the boilerplate? Warn that existing code may fail the jobs:
+- **Tooling group:** add CI, coding standards, PHPStan and local Docker from the boilerplate? Warn that existing code may fail the jobs: With `ci.yml` in the repo, the ruleset requires the "CI" check, so a failing job blocks every merge until it's fixed or made report-only.
   - PHPCS and PHPStan usually report many issues in older code. Offer to keep either job report-only (`continue-on-error: true`) or to drop it.
   - Plugin Check fails if `readme.txt` "Tested up to" is behind the latest WordPress (the audit says) and on anything WordPress.org would reject. Offer to drop the job for private client plugins.
 - **Community files:** add `CONTRIBUTING.md`, `SECURITY.md`, the issue forms and the PR template? Recommended for public repos; optional for private ones.
@@ -103,6 +103,8 @@ Do nothing until the user says yes. Then do it in its own issues and its own PR,
 
 ## 7. GitHub settings
 If this session has no admin `gh`, skip to the hand-off in "Where it runs" in the rules.
+
+If the audit shows `visibility=private`, warn first: rulesets on private repos need a paid GitHub plan (Pro, Team or Enterprise). On GitHub Free the script stops at the ruleset and `main` stays unprotected, unless the repo is made public.
 
 Show what `bin/setup-github.sh` will do (from its header comment), and get a clear yes. Creating the deploy key needs explicit approval. Then run:
 ```bash

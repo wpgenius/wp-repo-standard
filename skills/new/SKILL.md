@@ -21,7 +21,7 @@ Read `$STD/README.md`, section "Start a new plugin". It is the source of truth f
 - **Plugin name and description:** the name, plus a one-line description.
 - **Rename values:** what `bin/rename.sh --help` lists (vendor, prefix). Offer the values it would derive from the name.
 - **Author details:** author name and URI, and plugin URI. Never keep the boilerplate's author unless the user says so.
-- **GitHub repo:** the owner (user or organisation) and the visibility (private recommended).
+- **GitHub repo:** the owner (user or organisation) and the visibility. Say that on a private repo the "Protect main" ruleset needs a paid GitHub plan (Pro, Team or Enterprise); on GitHub Free choose public, or accept that `main` stays unprotected.
 - **Folder:** where to create it. Default: next to the current folder.
 - **Deploy target:** none (recommended), ftps, ssh or wporg.
 
