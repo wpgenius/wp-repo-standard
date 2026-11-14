@@ -2,6 +2,11 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.0 (2026-11-14)
+
+* Directory refused v1.0.2: the plugin ships script files (#13)
+* Put the plugin in its own subfolder (#14)
+
 ## 1.0.2 (2026-11-14)
 
 * Directory review: scripts run code from the downloaded standard (#8)
