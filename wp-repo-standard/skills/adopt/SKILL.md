@@ -11,25 +11,13 @@ First read `${CLAUDE_PLUGIN_ROOT}/rules.md`, and follow it throughout.
 The goal is to add the standard files and settings automatically. Code changes are only **proposed**. Work in the repo given as `$ARGUMENTS`, or in the current folder if none is given.
 
 ## 1. Audit
-```bash
-STD=$(bash "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-standard.sh")
-bash "${CLAUDE_PLUGIN_ROOT}/scripts/audit.sh" "$STD" .
-```
-The audit reads local files only. If the GitHub CLI is available here (see "Where it runs" in the rules), also check the GitHub side yourself, with `OWNER/REPO` from the audit's `GITHUB_REPO=` line:
-```bash
-gh api repos/OWNER/REPO --jq '{visibility, admin: .permissions.admin, squash: .allow_squash_merge, merge_commit: .allow_merge_commit, rebase: .allow_rebase_merge}'
-gh api repos/OWNER/REPO/rulesets --jq '[.[].name]'
-gh api repos/OWNER/REPO/branches/main/protection --silent && echo "classic branch protection: yes"
-gh label list --repo OWNER/REPO --search release:
-gh variable list --repo OWNER/REPO
-gh secret list --repo OWNER/REPO
-gh release list --repo OWNER/REPO --limit 20
-```
-Secret values are never readable; the list shows names only. Note draft releases: one named like a future version would clash with it.
+1. Download the standard ("Download the standard" in the rules).
+2. Work through `${CLAUDE_PLUGIN_ROOT}/skills/adopt/audit.md`, every section, and give the user the report.
+
 Then read the boilerplate's `README.md` in `$STD` ("How changes ship", "Deploys"), so you can explain the flow.
 
 Stop and explain if any of these is true:
-- **Not WordPress:** the repo isn't a WordPress plugin or theme (`KIND=unknown`). The standard doesn't cover it; offer to adapt it by hand.
+- **Not WordPress:** the audit found no WordPress plugin or theme. The standard doesn't cover it; offer to adapt it by hand.
 - **Not root layout:** the plugin or theme sits in a subfolder. The release scripts need it at the repo root. Moving it is a restructuring, so propose it (step 6), and continue only after the user says yes and that move is merged.
 - **No admin rights:** the user isn't an admin of the GitHub repo, so only an admin can apply the settings. Offer to do the file work and PR anyway, and hand the settings commands to an admin.
 
@@ -75,10 +63,7 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - `.github/dependabot.yml`;
   - `bin/setup-github.sh` (keep it executable).
 - **Merge** each of `.gitignore` and `.distignore`:
-  ```bash
-  bash "${CLAUDE_PLUGIN_ROOT}/scripts/merge-ignore.sh" "$STD/.distignore" .distignore > .distignore.new && mv .distignore.new .distignore
-  ```
-  Then read the "Project-specific" block. Remove rules that duplicate or fight the standard, and keep the genuinely project-specific ones.
+  as "Merge an ignore file" in the rules describes, including reading the "Project-specific" block afterwards.
 - **`readme.txt`:**
   - A plugin needs a `Stable tag:` equal to the header version, plus an `== Changelog ==` section.
   - A theme needs `== Changelog ==` only.
@@ -97,7 +82,7 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
 
 ## 5. Verify before pushing
 - **Script syntax:** run `bash -n` on every `.github/scripts/*.sh` and on `bin/setup-github.sh`, and `actionlint` if it's installed.
-- **Package contents:** run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/package-preview.sh" .` and show the user the file list.
+- **Package contents:** run "Preview the package" from the rules and show the user the file list.
   - The main file must be in it.
   - Nothing dev-only may ship.
   - Everything needed at runtime must ship, e.g. `build/`, `vendor/` for runtime dependencies, `languages/`.

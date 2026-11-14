@@ -5,21 +5,48 @@ Both `/wp-repo-standard:new` and `/wp-repo-standard:adopt` follow these rules.
 
 ## Source of the standard
 
-The standard lives in one place: **wpgenius/wordpress-plugin-boilerplate**, branch `main`. Every run downloads it fresh with `fetch-standard.sh`, so changes to the boilerplate reach every user without a new version of this plugin. Never copy standard files from memory or from this plugin.
+The standard lives in one place: **wpgenius/wordpress-plugin-boilerplate**, branch `main`. Every run downloads it fresh, so changes to the boilerplate reach every user without a new version of this plugin. Never copy standard files from memory or from this plugin.
 
-If the user keeps their own public fork of the boilerplate as their standard, set `REPO_STANDARD_SOURCE=owner/name` when running `fetch-standard.sh`.
+If the user keeps their own public fork of the boilerplate as their standard, they set `REPO_STANDARD_SOURCE=owner/name` in their environment; the download below uses it.
 
-## Scripts
+The downloaded files are only **read and copied** into the user's repo. Never run a script from the download itself. The only scripts you run are the user's own copies inside their repo, as each command describes: `bin/setup-github.sh` (with their yes) and, in `/wp-repo-standard:new`, `bin/rename.sh`.
 
-They're in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Run them with `bash`. They work on local files only: they don't contact GitHub, use any login, or run code from the downloaded standard (they only read and copy it). GitHub is reached only through `gh` commands you run in the open.
+## Shared steps
 
-| Script | Does |
-|---|---|
-| `fetch-standard.sh [dest]` | Shallow-clones the public boilerplate with `git` and prints the folder |
-| `audit.sh <standard> [repo]` | Read-only report from local files: type, layout, slug, versions, readme.txt, files, workflows |
-| `merge-ignore.sh <standard-file> <repo-file>` | The standard ignore file plus the repo's extra rules |
-| `package-preview.sh [repo]` | Lists exactly what the release zip would contain (committable files only, like CI) |
-| `lib.sh` | Packaging helpers the two scripts above share (sourced, not run) |
+These run on local files only: no login is needed, and GitHub is reached only by `git clone` of the public standard and by the `gh` commands each command lists.
+
+### Download the standard
+```bash
+STD="$(mktemp -d)/standard"
+git clone --depth 1 --quiet "https://github.com/${REPO_STANDARD_SOURCE:-wpgenius/wordpress-plugin-boilerplate}.git" "$STD" \
+  && git -C "$STD" log -1 --format='Standard: %h "%s" (%cs)'
+```
+Keep `$STD` for the rest of the run. If the clone fails, say so and stop: the source must be a public GitHub repo.
+
+### Merge an ignore file
+For `.gitignore` and `.distignore`: the result is the standard's file unchanged, followed by the rules from the repo's own file that the standard doesn't already have. Nothing from either side is dropped.
+```bash
+F=.distignore   # then the same for .gitignore
+extra=$( [ -f "$F" ] && grep -vE '^[[:space:]]*(#|$)' "$F" | sed 's/[[:space:]]*$//' | awk '!seen[$0]++' | grep -vxF -f <(sed 's/[[:space:]]*$//' "$STD/$F") )
+{ cat "$STD/$F"; [ -n "$extra" ] && printf '\n# --------------------------------------------------\n# Project-specific (kept from this repo)\n# --------------------------------------------------\n%s\n' "$extra"; } > "$F.new" && mv "$F.new" "$F"
+```
+Then read the "Project-specific" block. Remove rules that duplicate or fight the standard (for example `!vendor/`), and keep the genuinely project-specific ones. For `.distignore` this decides what ships, so always check the package preview afterwards.
+
+### Preview the package
+Lists exactly what the release zip will contain. Like CI, it starts from what git would commit (tracked files plus new files that aren't git-ignored), then applies `.distignore`:
+```bash
+P=$(mktemp -d)
+git ls-files -z --cached --others --exclude-standard |
+  while IFS= read -r -d '' f; do [ -e "$f" ] || [ -L "$f" ] && printf '%s\0' "$f"; done |
+  rsync -a --from0 --files-from=- ./ "$P/src/"
+rsync -a --exclude=.git --exclude-from="$P/src/.distignore" "$P/src/" "$P/pkg/"
+(cd "$P/pkg" && find . -type f | sed 's#^\./##' | sort); find "$P/pkg" -type l
+```
+Check the list, and tell the user what you find:
+- **The main file is in it:** the root `.php` file with a `Plugin Name:` header, or `style.css` with `Theme Name:` for a theme.
+- **Nothing dev-only ships:** dotfiles, `node_modules/`, `vendor/bin/`, `tests/`, block sources, `*.zip`, `*.log`, `*.sql`, `.env*`, `composer.*`, `package*.json`, `phpcs.xml*`, `phpunit.xml*`, `docker-compose*.yml`.
+- **Everything needed at runtime ships:** for example `build/`, `vendor/` for runtime dependencies, `languages/`.
+- **No symlinks:** the last command must print nothing; the release refuses symlinks.
 
 ## Where it runs
 
