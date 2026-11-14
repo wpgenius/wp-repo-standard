@@ -51,7 +51,7 @@ fi
 echo "Plugin files changed since $last:"
 printf '%s\n' "$changes" | sed 's/^/  /'
 
-bump=patch
+bump="patch"
 seen_issues=" "
 : > "$CHANGELOG_FILE"
 
