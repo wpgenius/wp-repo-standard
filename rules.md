@@ -7,18 +7,19 @@ Both `/wp-repo-standard:new` and `/wp-repo-standard:adopt` follow these rules.
 
 The standard lives in one place: **wpgenius/wordpress-plugin-boilerplate**, branch `main`. Every run downloads it fresh with `fetch-standard.sh`, so changes to the boilerplate reach every user without a new version of this plugin. Never copy standard files from memory or from this plugin.
 
-If the user keeps their own fork of the boilerplate as their standard, set `REPO_STANDARD_SOURCE=owner/name` when running `fetch-standard.sh`.
+If the user keeps their own public fork of the boilerplate as their standard, set `REPO_STANDARD_SOURCE=owner/name` when running `fetch-standard.sh`.
 
 ## Scripts
 
-They're in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Run them with `bash`.
+They're in `${CLAUDE_PLUGIN_ROOT}/scripts/`. Run them with `bash`. They work on local files only: they don't contact GitHub, use any login, or run code from the downloaded standard (they only read and copy it). GitHub is reached only through `gh` commands you run in the open.
 
 | Script | Does |
 |---|---|
-| `fetch-standard.sh [dest]` | Shallow-clones the boilerplate and prints the folder |
-| `audit.sh <standard> [repo]` | Read-only report: type, layout, slug, versions, readme.txt, files, GitHub settings |
+| `fetch-standard.sh [dest]` | Shallow-clones the public boilerplate with `git` and prints the folder |
+| `audit.sh <standard> [repo]` | Read-only report from local files: type, layout, slug, versions, readme.txt, files, workflows |
 | `merge-ignore.sh <standard-file> <repo-file>` | The standard ignore file plus the repo's extra rules |
-| `package-preview.sh [repo] [lib.sh]` | Lists exactly what the release zip would contain (committable files only, like CI) |
+| `package-preview.sh [repo]` | Lists exactly what the release zip would contain (committable files only, like CI) |
+| `lib.sh` | Packaging helpers the two scripts above share (sourced, not run) |
 
 ## Where it runs
 

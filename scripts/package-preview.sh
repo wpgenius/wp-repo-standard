@@ -1,20 +1,20 @@
 #!/usr/bin/env bash
 # Shows exactly what a release zip would contain, using the repo's own
-# .distignore and the standard's packaging code (.github/scripts/lib.sh).
+# .distignore and the same packaging rules as the release workflow (lib.sh).
 #
-#   package-preview.sh [repo-dir] [lib.sh]
+#   package-preview.sh [repo-dir]
 #
-# lib.sh defaults to the repo's .github/scripts/lib.sh. Flags files that look
-# like they should not ship. Exit 1 when the main file is missing from the package.
+# Flags files that look like they should not ship. Exit 1 when the main file
+# is missing from the package.
 set -euo pipefail
+here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
+# shellcheck source=lib.sh
+. "$here/lib.sh"
 
 repo=${1:-.}
 cd "$repo"
 git rev-parse --git-dir >/dev/null 2>&1 || { echo "$(pwd) is not a git repo" >&2; exit 1; }
-lib=${2:-.github/scripts/lib.sh}
-[ -f "$lib" ] || { echo "No $lib; pass the standard's lib.sh as the second argument" >&2; exit 1; }
 [ -f .distignore ] || { echo "No .distignore in $(pwd)" >&2; exit 1; }
-lib=$(cd "$(dirname "$lib")" && pwd)/$(basename "$lib")
 
 stage=$(mktemp -d)
 trap 'rm -rf "$stage"' EXIT
@@ -26,8 +26,8 @@ git ls-files -z --cached --others --exclude-standard | while IFS= read -r -d '' 
 	[ -e "$f" ] || [ -L "$f" ] || continue   # deleted in the working tree
 	printf '%s\0' "$f"
 done | rsync -a --from0 --files-from=- ./ "$stage/src/"
-(cd "$stage/src" && bash -c '. "$1"; build_package "$2"' _ "$lib" "$stage/pkg")
-main=$(cd "$stage/src" && bash -c '. "$1"; main_plugin_file' _ "$lib")
+(cd "$stage/src" && build_package "$stage/pkg")
+main=$(cd "$stage/src" && main_plugin_file) || { echo "ERROR: no main plugin file or theme style.css in the repo root" >&2; exit 1; }
 
 echo "Main file: $main"
 echo "Files in the package:"

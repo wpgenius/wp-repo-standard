@@ -42,7 +42,7 @@ Updates: `/plugin marketplace update wpgenius`, or turn on auto-update for the m
 
 ## Use your own standard
 
-Fork the boilerplate, change it, and set `REPO_STANDARD_SOURCE=your-org/your-boilerplate` in your environment. The commands then use your fork as the standard.
+Fork the boilerplate (keep the fork public), change it, and set `REPO_STANDARD_SOURCE=your-org/your-boilerplate` in your environment. The commands then use your fork as the standard.
 
 ## Contributing
 

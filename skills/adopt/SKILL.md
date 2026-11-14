@@ -15,6 +15,17 @@ The goal is to add the standard files and settings automatically. Code changes a
 STD=$(bash "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-standard.sh")
 bash "${CLAUDE_PLUGIN_ROOT}/scripts/audit.sh" "$STD" .
 ```
+The audit reads local files only. If the GitHub CLI is available here (see "Where it runs" in the rules), also check the GitHub side yourself, with `OWNER/REPO` from the audit's `GITHUB_REPO=` line:
+```bash
+gh api repos/OWNER/REPO --jq '{visibility, admin: .permissions.admin, squash: .allow_squash_merge, merge_commit: .allow_merge_commit, rebase: .allow_rebase_merge}'
+gh api repos/OWNER/REPO/rulesets --jq '[.[].name]'
+gh api repos/OWNER/REPO/branches/main/protection --silent && echo "classic branch protection: yes"
+gh label list --repo OWNER/REPO --search release:
+gh variable list --repo OWNER/REPO
+gh secret list --repo OWNER/REPO
+gh release list --repo OWNER/REPO --limit 20
+```
+Secret values are never readable; the list shows names only. Note draft releases: one named like a future version would clash with it.
 Then read the boilerplate's `README.md` in `$STD` ("How changes ship", "Deploys"), so you can explain the flow.
 
 Stop and explain if any of these is true:
@@ -86,7 +97,7 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
 
 ## 5. Verify before pushing
 - **Script syntax:** run `bash -n` on every `.github/scripts/*.sh` and on `bin/setup-github.sh`, and `actionlint` if it's installed.
-- **Package contents:** run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/package-preview.sh" . "$STD/.github/scripts/lib.sh"` and show the user the file list.
+- **Package contents:** run `bash "${CLAUDE_PLUGIN_ROOT}/scripts/package-preview.sh" .` and show the user the file list.
   - The main file must be in it.
   - Nothing dev-only may ship.
   - Everything needed at runtime must ship, e.g. `build/`, `vendor/` for runtime dependencies, `languages/`.
@@ -104,7 +115,7 @@ Do nothing until the user says yes. Then do it in its own issues and its own PR,
 ## 7. GitHub settings
 If this session has no admin `gh`, skip to the hand-off in "Where it runs" in the rules.
 
-If the audit shows `visibility=private`, warn first: rulesets on private repos need a paid GitHub plan (Pro, Team or Enterprise). On GitHub Free the script stops at the ruleset and `main` stays unprotected, unless the repo is made public.
+If the GitHub check in step 1 showed `"visibility": "private"`, warn first: rulesets on private repos need a paid GitHub plan (Pro, Team or Enterprise). On GitHub Free the script stops at the ruleset and `main` stays unprotected, unless the repo is made public.
 
 Show what `bin/setup-github.sh` will do (from its header comment), and get a clear yes. Creating the deploy key needs explicit approval. Then run:
 ```bash

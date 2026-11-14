@@ -1,23 +1,25 @@
 #!/usr/bin/env bash
 # Compares a repo with the repo standard and prints a report. Read-only:
-# changes nothing locally or on GitHub.
+# changes nothing. Works offline from local files only (plus a public
+# WordPress version lookup); it doesn't contact GitHub or use any login.
+# The GitHub settings are checked by the skill itself (adopt, step 1).
 #
 #   audit.sh <standard-dir> [repo-dir]
 #
 # Sections: repo type and layout, slug, versions, readme.txt, standard files,
-# tooling files, other workflows, GitHub settings.
+# tooling files, other workflows.
 set -uo pipefail
+here=$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)
 
 std=${1:?usage: audit.sh <standard-dir> [repo-dir]}
 std=$(cd "$std" && pwd)
 repo=${2:-.}
 cd "$repo" || exit 1
-lib="$std/.github/scripts/lib.sh"
+# shellcheck source=lib.sh
+. "$here/lib.sh"
 
 say() { printf '%s\n' "$*"; }
 hdr() { printf '\n## %s\n' "$*"; }
-main_file() { bash -c '. "$1"; main_plugin_file' _ "$lib" 2>/dev/null; }
-hver() { bash -c '. "$1"; header_version "$2"' _ "$lib" "$1" 2>/dev/null; }
 header_field() { head -n 30 "$1" | sed -nE "s/^[[:space:]/*#@]*$2:[[:space:]]*(.*[^[:space:]])[[:space:]]*$/\1/Ip" | head -n 1; }
 
 say "# Repo standard audit: $(pwd)"
@@ -25,7 +27,7 @@ say "Standard: $(git -C "$std" log -1 --format='%h "%s" (%cs)')"
 
 # ---------------------------------------------------------------- type/layout
 hdr "Type and layout"
-main=$(main_file || true)
+main=$(main_plugin_file || true)
 kind=unknown
 if [ -n "$main" ]; then
 	if [ "$main" = style.css ]; then kind=theme; else kind=plugin; fi
@@ -46,9 +48,11 @@ say "KIND=$kind"
 
 # ---------------------------------------------------------------- slug
 hdr "Slug (zip folder name)"
-nwo=$(gh repo view --json nameWithOwner --jq .nameWithOwner 2>/dev/null || true)
+# owner/name from the origin remote (https or ssh URL), without contacting GitHub.
+nwo=$(git remote get-url origin 2>/dev/null | sed -nE 's#^(https://|git@|ssh://git@)github\.com[:/]([^/]+/[^/]+)$#\2#p' | sed 's/\.git$//')
 name=${nwo#*/}
-say "- GitHub repo: ${nwo:-not found (no GitHub remote or gh not signed in)}"
+say "- GitHub repo: ${nwo:-not found (no github.com origin remote)}"
+say "GITHUB_REPO=${nwo}"
 domain=""
 [ -n "$main" ] && domain=$(header_field "$main" 'Text Domain')
 say "- Text Domain: ${domain:-none}"
@@ -63,7 +67,7 @@ fi
 # ---------------------------------------------------------------- versions
 hdr "Versions"
 ver=""
-[ -n "$main" ] && ver=$(hver "$main")
+[ -n "$main" ] && ver=$(header_version "$main")
 say "- Header Version: ${ver:-missing}"
 [ -z "$ver" ] || [[ "$ver" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]] || say "  Not X.Y.Z: the first automatic release will fall back to 1.0.0 unless it is fixed."
 strict=$(git tag --list 'v*' --sort=-v:refname | grep -E '^v[0-9]+\.[0-9]+\.[0-9]+$' | head -n 1)
@@ -79,10 +83,6 @@ else
 	if [ -n "$ver" ] && [ "$(printf '%s\n%s\n' "$ver" "$next" | sort -V | tail -n 1)" != "$next" ]; then
 		say "  WARNING: header Version $ver is ahead of v$next. Ask the user how to line them up before merging."
 	fi
-fi
-if command -v gh >/dev/null && [ -n "$nwo" ]; then
-	drafts=$(gh release list --repo "$nwo" --limit 50 --json tagName,isDraft --jq '[.[]|select(.isDraft)|.tagName]|join(" ")' 2>/dev/null)
-	[ -z "$drafts" ] || say "- Draft releases (may clash with future versions): $drafts"
 fi
 
 # ---------------------------------------------------------------- readme.txt
@@ -144,20 +144,3 @@ for f in .github/workflows/*.yml .github/workflows/*.yaml; do
 	others=1
 done
 [ "$others" = 1 ] || say "  none"
-
-# ---------------------------------------------------------------- GitHub
-hdr "GitHub settings"
-if [ -z "$nwo" ]; then
-	say "- skipped (no GitHub repo)"
-else
-	gh api "repos/$nwo" --jq '"- merges: squash=\(.allow_squash_merge) merge-commit=\(.allow_merge_commit) rebase=\(.allow_rebase_merge) delete-branch=\(.delete_branch_on_merge) squash-message=\(.squash_merge_commit_title)/\(.squash_merge_commit_message) visibility=\(.visibility) default-branch=\(.default_branch) admin=\(.permissions.admin)"' 2>/dev/null || say "- repo settings: not readable"
-	rs=$(gh api "repos/$nwo/rulesets" --jq '[.[].name]|join(", ")' 2>/dev/null)
-	say "- rulesets: ${rs:-none}"
-	gh api "repos/$nwo/branches/main/protection" >/dev/null 2>&1 && say "- classic branch protection on main: yes (the ruleset replaces it; ask before removing)"
-	labels=$(gh label list --repo "$nwo" --limit 200 --json name --jq '[.[].name|select(startswith("release:"))]|join(", ")' 2>/dev/null)
-	say "- release labels: ${labels:-none}"
-	vars=$(gh variable list --repo "$nwo" --json name,value --jq '[.[]|"\(.name)=\(.value)"]|join(" ")' 2>/dev/null)
-	say "- variables: ${vars:-none}"
-	secrets=$(gh secret list --repo "$nwo" --json name --jq '[.[].name]|join(" ")' 2>/dev/null)
-	say "- secret names: ${secrets:-none}"
-fi
