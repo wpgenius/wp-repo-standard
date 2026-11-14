@@ -75,7 +75,7 @@ Only if the GitHub CLI is available (see "Where it runs" in the rules); otherwis
 ```bash
 gh api repos/OWNER/REPO --jq '{visibility, admin: .permissions.admin, squash: .allow_squash_merge, merge_commit: .allow_merge_commit, rebase: .allow_rebase_merge}'
 gh api repos/OWNER/REPO/rulesets --jq '[.[].name]'
-gh api repos/OWNER/REPO/branches/main/protection --silent && echo "classic branch protection: yes"
+gh api repos/OWNER/REPO/branches/main/protection --silent 2>/dev/null && echo "classic branch protection: yes" || echo "classic branch protection: no"
 gh label list --repo OWNER/REPO --search release:
 gh variable list --repo OWNER/REPO
 gh secret list --repo OWNER/REPO

@@ -45,6 +45,7 @@ Ask everything at once, with the recommended answer first:
 - **Version mismatch:** only if the audit warned that the header version is ahead of the latest tag. How should they be lined up? For example, a `release:minor` or `release:major` label on this PR, or correcting the header.
 - **Old workflows:** only if the audit found workflows that aren't in the standard. Replace or keep each one. An old release or deploy workflow must go, or every change would be released twice.
 - **Classic branch protection:** only if present. Replace it with the ruleset?
+- **readme.txt details:** only if the repo has no `readme.txt`. The WordPress.org username(s) for `Contributors` (optional; leave a placeholder if none), and confirm `Requires at least`, `Requires PHP` and `Tested up to` (offer values from the README or code, and the latest WordPress from the audit).
 
 ## 3. Issues
 Create one issue per change you'll actually make. Each body says what's wrong now and the expected outcome. A typical set:
@@ -72,7 +73,7 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
 - **`readme.txt`:**
   - A plugin needs a `Stable tag:` equal to the header version, plus an `== Changelog ==` section.
   - A theme needs `== Changelog ==` only.
-  - If the file is missing, create one in WordPress readme format from the header fields.
+  - If the file is missing, create one in WordPress readme format from the header fields and the answers in step 2. Seed `== Changelog ==` with the earlier versions you can find in tags or commit messages, newest first, so the history isn't lost.
   - Keep every existing changelog entry.
 - **Header `Version:`** must be `X.Y.Z`. Fix it if it isn't, and say so.
 - **Tooling group** (if chosen):

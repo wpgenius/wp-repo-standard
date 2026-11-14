@@ -28,7 +28,7 @@ For `.gitignore` and `.distignore`: the result is the standard's file unchanged,
 ```bash
 F=.distignore   # then the same for .gitignore
 extra=$( [ -f "$F" ] && grep -vE '^[[:space:]]*(#|$)' "$F" | sed 's/[[:space:]]*$//' | awk '!seen[$0]++' | grep -vxF -f <(sed 's/[[:space:]]*$//' "$STD/$F") )
-{ cat "$STD/$F"; [ -n "$extra" ] && printf '\n# --------------------------------------------------\n# Project-specific (kept from this repo)\n# --------------------------------------------------\n%s\n' "$extra"; } > "$F.new" && mv "$F.new" "$F"
+{ cat "$STD/$F"; if [ -n "$extra" ]; then printf '\n# --------------------------------------------------\n# Project-specific (kept from this repo)\n# --------------------------------------------------\n%s\n' "$extra"; fi; } > "$F.new" && mv "$F.new" "$F"
 ```
 Then read the "Project-specific" block. Remove rules that duplicate or fight the standard (for example `!vendor/`), and keep the genuinely project-specific ones. For `.distignore` this decides what ships, so always check the package preview afterwards.
 
