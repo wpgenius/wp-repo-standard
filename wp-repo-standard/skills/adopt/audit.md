@@ -81,6 +81,7 @@ gh variable list --repo OWNER/REPO
 gh secret list --repo OWNER/REPO
 gh release list --repo OWNER/REPO --limit 20
 ```
+- `REQUIRE_LINKED_ISSUE` in the variables: report it. Not set means the linked-issue rule is on; `false` means off (the check always passes and the changelog uses PR titles); anything else means on.
 - Secret values are never readable; the list shows names only.
 - Note draft releases: one named like a future version would clash with it.
 - `"visibility": "private"` matters for step 7 of adopt: rulesets on private repos need a paid GitHub plan.

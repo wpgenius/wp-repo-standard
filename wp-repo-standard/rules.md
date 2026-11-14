@@ -60,7 +60,7 @@ If `gh` is missing, not signed in, or not an admin (common in cloud sessions), d
 - finish everything that needs only `git`, and open the PR if you can (otherwise push the branch and give the user the compare URL);
 - then tell the user to run the settings themselves, on a computer where `gh auth login` is done, from a checkout of the repo:
   ```bash
-  bin/setup-github.sh OWNER/REPO
+  bin/setup-github.sh OWNER/REPO --linked-issue on   # or off, as chosen
   ```
   plus any `gh variable set` / `gh secret set` commands the command would have run;
 - say clearly which settings are not applied yet. Until they are, `main` is unprotected and the release workflow pushes with the workflow token instead of the deploy key.
@@ -70,6 +70,7 @@ If `gh` is missing, not signed in, or not an admin (common in cloud sessions), d
 - **Credits:** commits and PRs carry only the user's own git identity. Never add a Co-Authored-By trailer, a "Generated with" footer or a session link, and never commit as a bot user.
 - **Branch names:** short and descriptive (e.g. `repo-standard`). Never prefixed with the assistant's name.
 - **Issues and PRs:** one GitHub issue per change. All changes from one request go in one PR that closes every issue, with one `Closes #N` line per issue. Squash-merge.
+  - In a repo whose linked-issue switch is off (`REQUIRE_LINKED_ISSUE=false`), PRs need no issue and the release changelog uses PR titles instead. Open issues anyway unless the user says not to, and always write PR titles that read well as changelog lines.
   - A risky change unrelated to the rest (e.g. code restructuring) gets its own PR, so it can be reverted alone.
 - **Skip markers:** never write `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]` or `[actions skip]` in a PR title or body, not even quoted. The squash commit inherits it and GitHub then skips every workflow, including the release.
 - **`main`:** never push to it directly. The only exception is the very first commit of a brand-new repo in `/wp-repo-standard:new`.
@@ -86,12 +87,13 @@ If `gh` is missing, not signed in, or not an admin (common in cloud sessions), d
   3. commits that to `main`;
   4. tags it and publishes a GitHub release with the zip.
 - **Deploys:** `deploy.yml`, with an on/off switch. It deploys only while the repo variable `DEPLOY_ENABLED` is `true`, which is off by default. `DEPLOY_METHOD` picks the target: `ftps`, `ssh` or `wporg`.
-- **Linked issue check:** `linked-issue.yml`. A PR must close an issue.
+- **Linked issue check:** `linked-issue.yml`. A PR must close an issue, and the release changelog is built from those issues. It has an on/off switch, the repo variable `REQUIRE_LINKED_ISSUE`: on unless it is `false`. When off, the check still runs but always passes (so the required check stays green), and the changelog uses PR titles. On is the standard; off suits repos that don't want an issue for every PR.
 - **Dependabot** for GitHub Actions.
 - **Setup script:** `bin/setup-github.sh` applies the GitHub settings that templates don't copy:
   - squash-only merges;
   - the release labels;
   - `DEPLOY_ENABLED=false`;
+  - `REQUIRE_LINKED_ISSUE` from `--linked-issue on|off`. Without the flag an existing value is kept, and an unset one stays on. The script only asks when run in a terminal, and it never is when you run it, so always pass the flag when the user made a choice;
   - a `release-bot` deploy key, which the release workflow uses to push its version commit;
   - a "Protect main" ruleset: no deletion, no force-push, PRs required, the "Linked issue" check required, plus the "CI" check when the repo has `ci.yml`. Repo admins and deploy keys may bypass it. On a private repo, rulesets need a paid GitHub plan (Pro, Team or Enterprise); the script says so and stops if GitHub refuses;
   - private vulnerability reporting (the "Report a vulnerability" button `SECURITY.md` points to; GitHub allows it on public repos).

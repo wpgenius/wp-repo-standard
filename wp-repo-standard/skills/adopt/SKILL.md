@@ -25,6 +25,11 @@ If only this session can't reach GitHub as an admin (no `gh`, not signed in, a c
 
 ## 2. One round of questions
 Ask everything at once, with the recommended answer first:
+- **Linked-issue rule:** must every PR close an issue?
+  - *on* (recommended, the standard): the changelog lists the closed issues;
+  - *off*: PRs need no issue; the check always passes and the changelog uses PR titles.
+
+  If the audit found `REQUIRE_LINKED_ISSUE` already set, don't ask: keep that value and tell the user, unless they ask to change it.
 - **Deploy target:**
   - *none for now* (recommended);
   - *ftps*;
@@ -46,7 +51,7 @@ Create one issue per change you'll actually make. Each body says what's wrong no
 - **Standard ignore files:** `.gitignore`, and `.distignore` deciding what ships.
 - **Automatic releases:** `release.yml` and `.github/scripts/`, including the `readme.txt` Stable tag and changelog.
 - **Deploy workflow:** off by default, naming the chosen target.
-- **Require a linked issue on PRs.**
+- **Linked issue check on PRs:** the workflow, with the chosen on/off setting.
 - **Dependabot for GitHub Actions.**
 - **GitHub setup script:** `bin/setup-github.sh`.
 - **Tooling group:** if chosen (name PHPStan and Plugin Check in it, and any job kept report-only).
@@ -102,9 +107,9 @@ If this session has no admin `gh`, skip to the hand-off in "Where it runs" in th
 
 If the GitHub check in step 1 showed `"visibility": "private"`, warn first: rulesets on private repos need a paid GitHub plan (Pro, Team or Enterprise). On GitHub Free the script stops at the ruleset and `main` stays unprotected, unless the repo is made public.
 
-Show what `bin/setup-github.sh` will do (from its header comment), and get a clear yes. Creating the deploy key needs explicit approval. Then run:
+Show what `bin/setup-github.sh` will do (from its header comment), and get a clear yes. Creating the deploy key needs explicit approval. Then run it with the linked-issue choice from step 2 (leave the flag out only when keeping an existing value):
 ```bash
-bin/setup-github.sh OWNER/REPO
+bin/setup-github.sh OWNER/REPO --linked-issue on   # or off
 ```
 Then, where needed:
 - set `gh variable set PLUGIN_SLUG --body <slug>`;

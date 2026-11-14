@@ -18,7 +18,7 @@ Both ask before anything outward-facing: creating a repo, changing GitHub settin
 - `.gitignore`, and `.distignore`, which decides what ships.
 - **Automatic releases** (`release.yml`): each merge to `main` that changes the plugin zip bumps the version (patch, or minor/major by label), writes it into the plugin header (or `style.css`) and `readme.txt` with a changelog built from the closed issues, tags it and publishes a GitHub release with the zip.
 - **Deploys** (`deploy.yml`) to FTPS, SSH or WordPress.org, off until the repo variable `DEPLOY_ENABLED` is `true`.
-- **Linked issue check**: a PR must close an issue.
+- **Linked issue check**: a PR must close an issue. You can switch it off per repo (`REQUIRE_LINKED_ISSUE=false`); the changelog then uses PR titles.
 - **Dependabot** for GitHub Actions.
 - **GitHub settings** (`bin/setup-github.sh`): squash-only merges, release labels, a release deploy key and a "Protect main" ruleset.
 - Optional: CI with PHPCS, PHPStan, unit tests and Plugin Check, community files, a WordPress Playground demo.
