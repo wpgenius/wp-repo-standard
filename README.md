@@ -40,6 +40,18 @@ Updates: `/plugin marketplace update wpgenius`, or turn on auto-update for the m
 - The [GitHub CLI](https://cli.github.com) signed in (`gh auth login`) as an admin of the repo, for the GitHub settings. Without it (for example in a cloud session) the commands still do the file work and the PR, then give you the one command to run on your own computer: `bin/setup-github.sh OWNER/REPO`.
 - `php` for the syntax checks; Composer and npm only if you add the tooling.
 
+## Data and network use
+
+The plugin has no server of its own: nothing is sent to WPGenius, and it collects or stores no personal data. While it works on your repo, it contacts only these services:
+
+| Service | What for | What is sent |
+|---|---|---|
+| **GitHub** (`github.com`, through `git` and the GitHub CLI) | Download the public boilerplate; read the repo's settings; create the repo, issues, PRs, labels, the ruleset and the release deploy key; push the branch | Your repo's code and the issue and PR text, to your own GitHub repo, signed in as you. Every outward step is confirmed with you first. |
+| **WordPress.org** (`api.wordpress.org`) | Look up the latest WordPress version, to check `readme.txt` "Tested up to" | Nothing about you or your repo (a plain public request) |
+| **Packagist and npm** | Only if you add the optional tooling group: `composer install` and `npm install` download the dev tools | The package names in `composer.json` and `package.json` |
+
+Deploys (FTPS, SSH, WordPress.org SVN) run later in your repo's GitHub Actions, not in this plugin, and stay off until you turn them on.
+
 ## Use your own standard
 
 Fork the boilerplate (keep the fork public), change it, and set `REPO_STANDARD_SOURCE=your-org/your-boilerplate` in your environment. The commands then use your fork as the standard.
