@@ -10,7 +10,7 @@ head -n 30 style.css 2>/dev/null | grep -qiE '^[[:space:]/*#@]*Theme Name:' && e
 - A root `.php` file with `Plugin Name:` means a **plugin**, and that file is the main file. Otherwise `style.css` with `Theme Name:` means a **theme**.
 - If neither is in the root, look one level deeper:
   ```bash
-  grep -rliE --include='*.php' --include=style.css --exclude-dir={.git,vendor,node_modules} '^[[:space:]/*#@]*(Plugin|Theme) Name:' . | head -n 5
+  grep -rliE --include='*.php' --include=style.css --exclude-dir={.git,.claude,vendor,node_modules} '^[[:space:]/*#@]*(Plugin|Theme) Name:' . | head -n 5
   ```
   A hit means **not root layout**: the release scripts need the plugin or theme at the repo root. No hit at all means it isn't a WordPress plugin or theme.
 
@@ -64,13 +64,37 @@ done
 ```
 Group them for the user: **tooling** (CI, coding standards, static analysis, tests, local Docker), **community files**, and the **Playground demo** (public plugins with a release only).
 
-## 7. Other workflows
+## 7. Code shape
+What the tooling group and `.distignore` must adapt to. The boilerplate's own layout is: block sources in `blocks/` compiled into a committed `build/`, integration tests in `tests/Integration`, and no other plugins' classes.
+```bash
+find blocks -name block.json -maxdepth 3 2>/dev/null | head -n 5
+ls -d build 2>/dev/null; grep -s '"build"' package.json
+ls -d tests/Integration phpunit-integration.xml.dist 2>/dev/null
+grep -rlIE --include='*.php' --exclude-dir={vendor,node_modules,.git,.claude} 'Elementor\\|\bWC_|WooCommerce|\bacf_|ACF' . | head -n 5
+grep -s '"node"' package.json; node -v 2>/dev/null
+```
+Report each:
+- **Blocks:** `block.json` under `blocks/` with no `build/` and no `build` script means **plain blocks** whose runtime files live in `blocks/`. The standard `.distignore` excludes `/blocks` (it expects compiled output in `build/`), so this plugin would ship without its blocks unless that rule is commented out (step 4).
+- **Build step:** none means the tooling's block-build CI job and the `build`/`start` npm scripts don't apply.
+- **Integration tests:** none means the tooling's integration job and the `env`/`test:integration` scripts and `@wordpress/env` don't apply.
+- **Integrations:** code that extends Elementor, WooCommerce or ACF classes makes PHPStan report "class not found" for them until stubs are added (step 4).
+- **Node:** compare `node -v` with the standard's `engines` (in `$STD/package.json`). An older Node makes `npm run lint` crash (for example ERR_REQUIRE_ESM on Node 22.10).
+
+## 8. Ignored files the plugin may need
+The package preview only sees what git would commit, so a file wrongly ignored by an old rule (for example an unanchored `vendor/` that also hides `assets/vendor/`) is missing from every release and nothing else catches it. Run this now and again after merging `.gitignore` in step 4:
+```bash
+git ls-files --others --ignored --exclude-standard --directory | grep -vE '^(vendor|node_modules)/|(^|/)\.|\.(log|cache)$' | head -n 30
+```
+- Anything under runtime folders (`assets/`, `includes/`, `src/`, `blocks/`, `build/`, `languages/`, `templates/`) is almost certainly needed: warn, and find the rule with `git check-ignore -v <path>`.
+- Root `vendor/` is fine while Composer is dev-only. If `composer.json` has runtime `require` packages besides `php`, `vendor/` must ship: say so.
+
+## 9. Other workflows
 ```bash
 for f in $(find .github/workflows -maxdepth 1 \( -name '*.yml' -o -name '*.yaml' \) 2>/dev/null | sort); do [ -f "$STD/$f" ] || echo "$f: $(sed -nE 's/^name:[[:space:]]*(.*)/\1/p' "$f" | head -n 1)"; done
 ```
 Workflows that aren't in the standard. An old release or deploy workflow must go, or every change would be released twice.
 
-## 8. GitHub settings
+## 10. GitHub settings
 Only if the GitHub CLI is available (see "Where it runs" in the rules); otherwise say this part was skipped.
 ```bash
 gh api repos/OWNER/REPO --jq '{visibility, admin: .permissions.admin, squash: .allow_squash_merge, merge_commit: .allow_merge_commit, rebase: .allow_rebase_merge}'

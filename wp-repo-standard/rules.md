@@ -30,7 +30,9 @@ F=.distignore   # then the same for .gitignore
 extra=$( [ -f "$F" ] && grep -vE '^[[:space:]]*(#|$)' "$F" | sed 's/[[:space:]]*$//' | awk '!seen[$0]++' | grep -vxF -f <(sed 's/[[:space:]]*$//' "$STD/$F") )
 { cat "$STD/$F"; if [ -n "$extra" ]; then printf '\n# --------------------------------------------------\n# Project-specific (kept from this repo)\n# --------------------------------------------------\n%s\n' "$extra"; fi; } > "$F.new" && mv "$F.new" "$F"
 ```
-Then read the "Project-specific" block. Remove rules that duplicate or fight the standard (for example `!vendor/`), and keep the genuinely project-specific ones. For `.distignore` this decides what ships, so always check the package preview afterwards.
+Then read the "Project-specific" block. Remove rules that duplicate or fight the standard (for example `!vendor/`), and keep the genuinely project-specific ones. Watch for unanchored rules that hide runtime files, such as `vendor/`, which also matches `assets/vendor/`; anchor them (`/vendor/`).
+
+The standard part stays unchanged, with one exception: a plugin whose blocks are plain JS with no build step comments out `/blocks` in `.distignore` (see adopt step 4). For `.distignore` this decides what ships, so always check the package preview afterwards.
 
 ### Preview the package
 Lists exactly what the release zip will contain. Like CI, it starts from what git would commit (tracked files plus new files that aren't git-ignored), then applies `.distignore`:
@@ -52,10 +54,13 @@ Check the list, and tell the user what you find:
 
 The file work (audit, adding files, branch, commits, PR) needs only `git`. The GitHub settings (step "GitHub settings" in each command, `bin/setup-github.sh`) need the GitHub CLI signed in as a repo admin.
 
-Check once, before the step that needs it:
+Check once, **before any work** (a missing scope found at push time means redoing steps):
 ```bash
 gh auth status && gh api "repos/OWNER/REPO" --jq .permissions.admin
+git remote get-url origin
 ```
+- **Scopes** (the "Token scopes" line): `repo` is needed for the settings, the deploy key and secrets. `workflow` is needed to push changes to `.github/workflows/` when the remote is `https://` (pushes over `git@github.com:`/SSH don't need it). If one is missing, ask the user to run `gh auth refresh -h github.com -s workflow` (it opens the browser), then check again.
+- **HTTPS pushes:** if `git push` can't authenticate over `https://`, push once with the GitHub CLI's credentials: `git -c credential.helper='!gh auth git-credential' push -u origin BRANCH`. `gh auth setup-git` makes that permanent, but it changes the user's global git config, so only with their yes.
 If `gh` is missing, not signed in, or not an admin (common in cloud sessions), don't stop:
 - finish everything that needs only `git`, and open the PR if you can (otherwise push the branch and give the user the compare URL);
 - then tell the user to run the settings themselves, on a computer where `gh auth login` is done, from a checkout of the repo:
