@@ -10,5 +10,12 @@
 	"homepage": "https://github.com/wpgenius/wp-repo-standard",
 	"repository": "https://github.com/wpgenius/wp-repo-standard",
 	"license": "GPL-3.0-or-later",
-	"keywords": ["wordpress", "wordpress-plugin", "wordpress-theme", "github-actions", "release", "repo-setup"]
+	"keywords": [
+		"wordpress",
+		"wordpress-plugin",
+		"wordpress-theme",
+		"github-actions",
+		"release",
+		"repo-setup"
+	]
 }
