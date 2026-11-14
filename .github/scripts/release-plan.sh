@@ -7,14 +7,14 @@
 #
 # Rules:
 # - Only strict vMAJOR.MINOR.PATCH tags count as previous releases.
-# - A release happens only when a shipped file changed since the last release
-#   (see shipped_paths: what Claude Code loads from the plugin). README, CI and
-#   other repo files make no release.
+# - A release happens only when a file in the plugin folder (wp-repo-standard/,
+#   what the directory and Claude Code install) changed since the last release.
+#   Root README, CI and other repo files make no release.
 # - Bump: patch, or minor/major when a released PR has the label
 #   release:minor / release:major (the highest wins).
 # - Changelog: the titles of the issues closed by the released PRs; a commit
 #   without a PR or linked issue contributes its subject line instead.
-# - No previous release: version = .claude-plugin/plugin.json "version"
+# - No previous release: version = wp-repo-standard/.claude-plugin/plugin.json "version"
 #   (or 1.0.0), changelog "Initial release."
 #
 # Needs: git with full history and tags, jq, gh (GH_TOKEN), GITHUB_REPOSITORY.
@@ -25,13 +25,13 @@ CHANGELOG_FILE=${CHANGELOG_FILE:-changelog.txt}
 out() { echo "$1"; if [ -n "${GITHUB_OUTPUT:-}" ]; then echo "$1" >> "$GITHUB_OUTPUT"; fi; }
 
 # Files that are part of the installed plugin. Reads paths on stdin, prints the shipped ones.
-shipped_paths() { grep -E '^(\.claude-plugin/|skills/|commands/|agents/|hooks/|scripts/|rules\.md$|\.mcp\.json$)' || true; }
+shipped_paths() { grep -E '^wp-repo-standard/' || true; }
 
 semver='^v[0-9]+\.[0-9]+\.[0-9]+$'
 last=$(git tag --list 'v*' --merged HEAD --sort=-v:refname | grep -E "$semver" | head -n 1 || true)
 
 if [ -z "$last" ]; then
-	version=$(jq -r '.version // empty' .claude-plugin/plugin.json)
+	version=$(jq -r '.version // empty' wp-repo-standard/.claude-plugin/plugin.json)
 	[[ "v$version" =~ $semver ]] || version=1.0.0
 	echo "No previous release; first release will be $version."
 	printf '* Initial release.\n' > "$CHANGELOG_FILE"

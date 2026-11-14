@@ -8,10 +8,15 @@
 	"plugins": [
 		{
 			"name": "wp-repo-standard",
-			"source": "./",
+			"source": "./wp-repo-standard",
 			"description": "Start a WordPress plugin from wordpress-plugin-boilerplate, or bring an existing plugin or theme repo up to its standard: automatic releases, deploy switch, linked issues, protected main.",
 			"category": "development",
-			"tags": ["wordpress", "github-actions", "release", "repo-setup"]
+			"tags": [
+				"wordpress",
+				"github-actions",
+				"release",
+				"repo-setup"
+			]
 		}
 	]
 }

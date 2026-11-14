@@ -17,20 +17,35 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
-      - name: Script syntax
-        run: for f in scripts/*.sh .github/scripts/*.sh; do bash -n "$f"; done
-
-      - name: ShellCheck
-        run: shellcheck --severity=warning scripts/*.sh .github/scripts/*.sh
+      - name: Release scripts (syntax and ShellCheck)
+        run: |
+          for f in .github/scripts/*.sh; do bash -n "$f"; done
+          shellcheck --severity=warning .github/scripts/*.sh
 
       - name: JSON
-        run: for f in .claude-plugin/*.json; do jq empty "$f"; done
+        run: for f in .claude-plugin/*.json wp-repo-standard/.claude-plugin/*.json; do jq empty "$f"; done
 
-      - name: Directory rules (no symlinks, no .DS_Store, files under 256 KiB)
+      # The Claude plugin directory accepts only these files from organizations
+      # that aren't Verified: Markdown, text, JSON, YAML and PNG/JPEG/GIF/WebP/ICO
+      # images (plus LICENSE), none starting with "#!", each under 256 KiB, no
+      # symlinks. Keep scripts outside the plugin folder.
+      - name: Plugin folder contains only allowed files
         run: |
           set -euo pipefail
-          bad=$(find . -path ./.git -prune -o \( -type l -o -name .DS_Store -o -size +256k \) -print)
-          [ -z "$bad" ] || { echo "::error::Not allowed in the plugin: $bad"; exit 1; }
+          bad=0
+          while IFS= read -r -d '' f; do
+            case "$f" in
+              *.md|*.txt|*.json|*.yml|*.yaml|*.png|*.jpg|*.jpeg|*.gif|*.webp|*.ico|*/LICENSE) ;;
+              *) echo "::error file=$f::File type not allowed in the plugin folder"; bad=1 ;;
+            esac
+            if [ "$(head -c 2 "$f")" = '#!' ]; then echo "::error file=$f::Starts with #!"; bad=1; fi
+            if [ "$(wc -c < "$f")" -gt 262144 ]; then echo "::error file=$f::Larger than 256 KiB"; bad=1; fi
+          done < <(find wp-repo-standard -type f -print0)
+          if [ -n "$(find wp-repo-standard -type l -o -name .DS_Store)" ]; then echo "::error::Symlinks or .DS_Store in the plugin folder"; bad=1; fi
+          exit "$bad"
 
-      - name: Validate the plugin and marketplace
+      - name: Validate the plugin
+        run: npx --yes @anthropic-ai/claude-code plugin validate wp-repo-standard --strict
+
+      - name: Validate the marketplace
         run: npx --yes @anthropic-ai/claude-code plugin validate . --strict

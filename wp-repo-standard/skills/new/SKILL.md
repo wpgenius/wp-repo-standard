@@ -11,15 +11,13 @@ Read `${CLAUDE_PLUGIN_ROOT}/rules.md` first and follow it throughout.
 The boilerplate is a plugin, so this command makes plugins. For a theme, build the theme first, then run `/wp-repo-standard:adopt` in its repo.
 
 ## 1. Fetch and read
-```bash
-STD=$(bash "${CLAUDE_PLUGIN_ROOT}/scripts/fetch-standard.sh")
-```
+Download the standard ("Download the standard" in the rules).
 Read `$STD/README.md`, section "Start a new plugin". It is the source of truth for the rename variables and commands, and it changes over time. Use what it says now, not what you remember.
 
 ## 2. One round of questions
 `$ARGUMENTS` may already give the plugin name. Ask everything else at once:
 - **Plugin name and description:** the name, plus a one-line description.
-- **Rename values:** what `bin/rename.sh --help` lists (vendor, prefix). Offer the values it would derive from the name.
+- **Rename values:** the options `$STD/bin/rename.sh` lists in its header comment (vendor, prefix). Read the file; don't run it from `$STD`. Offer the values it would derive from the name.
 - **Author details:** author name and URI, and plugin URI. Never keep the boilerplate's author unless the user says so.
 - **GitHub repo:** the owner (user or organisation) and the visibility. Say that on a private repo the "Protect main" ruleset needs a paid GitHub plan (Pro, Team or Enterprise); on GitHub Free choose public, or accept that `main` stays unprotected.
 - **Folder:** where to create it. Default: next to the current folder.
@@ -50,10 +48,7 @@ Before creating anything, confirm the plan in one message:
      ```
    - `php -l` passes on all PHP files.
    - The package looks right:
-     ```bash
-     bash "${CLAUDE_PLUGIN_ROOT}/scripts/package-preview.sh" .
-     ```
-     (Run `git add -A` first, so the new files count.)
+     run "Preview the package" from the rules (after `git add -A`, so the new files count).
 
 ## 4. Create the repo, protect it, then push
 Do it in this order, so the first release runs with the deploy key already in place. Creating the repo and applying settings need the GitHub CLI as an admin of the owner; without it, follow "Where it runs" in the rules: give the user these commands to run themselves.

@@ -7,7 +7,7 @@ name: Release
 #   1. Work out the next version (patch by default; the merged PR's
 #      `release:minor` / `release:major` label bumps more) and the changelog
 #      (one line per issue the released PRs closed).
-#   2. Write the version into .claude-plugin/plugin.json and the entry into
+#   2. Write the version into wp-repo-standard/.claude-plugin/plugin.json and the entry into
 #      CHANGELOG.md, and commit that to main as "Release vX.Y.Z".
 #      Pushed with the RELEASE_DEPLOY_KEY deploy key, which the ruleset lets bypass.
 #   3. Tag that commit and publish the GitHub release.
