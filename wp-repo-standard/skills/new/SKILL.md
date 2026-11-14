@@ -17,11 +17,15 @@ Read `$STD/README.md`, section "Start a new plugin". It is the source of truth f
 ## 2. One round of questions
 `$ARGUMENTS` may already give the plugin name. Ask everything else at once:
 - **Plugin name and description:** the name, plus a one-line description.
-- **Rename values:** the options `$STD/bin/rename.sh` lists in its header comment (vendor, prefix). Read the file; don't run it from `$STD`. Offer the values it would derive from the name.
+- **Rename values:** the options `$STD/bin/rename.sh` lists in its header comment. Read the file; don't run it from `$STD`. Ask for each one it takes, offering the values it would derive from the name. At the time of writing:
+  - vendor and prefix;
+  - the WordPress.org username(s) for `readme.txt` Contributors (optional; without it `readme.txt` gets a placeholder);
+  - examples: *all* (the default) or *minimal* (without the daily report email, the log table and the "View details" popup). Minimal suits a plugin that won't use them.
 - **Author details:** author name and URI, and plugin URI. Never keep the boilerplate's author unless the user says so.
 - **GitHub repo:** the owner (user or organisation) and the visibility. Say that on a private repo the "Protect main" ruleset needs a paid GitHub plan (Pro, Team or Enterprise); on GitHub Free choose public, or accept that `main` stays unprotected.
 - **Folder:** where to create it. Default: next to the current folder.
 - **Deploy target:** none (recommended), ftps, ssh or wporg.
+- **Linked-issue rule:** on (recommended: every PR closes an issue and the changelog lists them) or off (no issue needed; the changelog uses PR titles).
 
 Before creating anything, confirm the plan in one message:
 - the repo `OWNER/SLUG` and its visibility;
@@ -32,10 +36,11 @@ Before creating anything, confirm the plan in one message:
 1. **Get a fresh copy.** Clone with a fresh history, as the README describes ("clone this one and start a fresh history").
 2. **Rename.** Run `bin/rename.sh` with the chosen values and `--yes`, for example:
    ```bash
-   bin/rename.sh "Acme Events" --vendor Acme --prefix acme_events --description "…" --author "…" --author-uri "…" --github OWNER/SLUG --yes
+   bin/rename.sh "Acme Events" --vendor Acme --prefix acme_events --description "…" --author "…" --author-uri "…" --contributors wporg-user --github OWNER/SLUG --full --yes
    ```
    It renames every file and string, fills in the plugin header, resets the version to 1.0.0, and empties the changelog. If the README describes a different rename step, follow the README.
-3. **Hand edits.** Anything the script reports as left over, `readme.txt` (description, FAQ, Contributors), and regenerate the `.pot` file (`composer make-pot`) if Composer is set up.
+   Use `--minimal` instead of `--full` if chosen, and leave out `--contributors` if the user has no WordPress.org username.
+3. **Hand edits.** Anything the script reports as left over, `readme.txt` (description, FAQ, and Contributors if it's still the placeholder), and regenerate the `.pot` file (`composer make-pot`) if Composer is set up.
 4. **Version check.** Confirm the header `Version:`, the `*_VERSION` constant and `Stable tag:` all say `1.0.0`, and that `readme.txt` "Tested up to" is the latest WordPress (Plugin Check in CI fails otherwise).
 5. **Write a README.** Replace `README.md` with a short one for this plugin: name, description, a "Development" pointer and "How changes ship". Keep the boilerplate's developer notes where they still apply.
    - **Public repo:** keep a "Try it in your browser" link to `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/OWNER/SLUG/main/.wordpress-org/blueprints/blueprint.json`. It works from the first release on.
@@ -59,7 +64,7 @@ Do it in this order, so the first release runs with the deploy key already in pl
    Use `--public` if chosen, and no `--source`.
 2. **Apply the settings:**
    ```bash
-   bin/setup-github.sh OWNER/SLUG
+   bin/setup-github.sh OWNER/SLUG --linked-issue on   # or off, as chosen
    ```
 3. **Push the first commit.** This is the one allowed direct push to `main`: the repo is new and the user is an admin.
    ```bash
