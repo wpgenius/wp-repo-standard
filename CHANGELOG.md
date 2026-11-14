@@ -2,6 +2,12 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.2 (2026-11-14)
+
+* Ignore-file merge leaves no .distignore when the repo has none (#19)
+* Audit: branch protection check prints a GitHub error (#20)
+* adopt: ask for readme.txt details when creating one (#21)
+
 ## 1.1.1 (2026-11-14)
 
 * Support the boilerplate's linked-issue on/off switch (#16)
