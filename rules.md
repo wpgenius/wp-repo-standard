@@ -65,7 +65,7 @@ If `gh` is missing, not signed in, or not an admin (common in cloud sessions), d
   - the release labels;
   - `DEPLOY_ENABLED=false`;
   - a `release-bot` deploy key, which the release workflow uses to push its version commit;
-  - a "Protect main" ruleset: no deletion, no force-push, PRs required, the "Linked issue" check required. Repo admins and deploy keys may bypass it;
+  - a "Protect main" ruleset: no deletion, no force-push, PRs required, the "Linked issue" check required, plus the "CI" check when the repo has `ci.yml`. Repo admins and deploy keys may bypass it. On a private repo, rulesets need a paid GitHub plan (Pro, Team or Enterprise); the script says so and stops if GitHub refuses;
   - private vulnerability reporting (the "Report a vulnerability" button `SECURITY.md` points to; GitHub allows it on public repos).
 - **Tooling** (optional when adopting): CI (`ci.yml`: PHP syntax and unit tests, PHPCS, PHPStan, JS/CSS lint, block build, WordPress Plugin Check), coding standards, static analysis (`phpstan.neon.dist`, `tests/phpstan/bootstrap.php`), a local Docker environment.
   - Plugin Check fails while `readme.txt` "Tested up to" is behind the latest WordPress, and on code WordPress.org would reject.
