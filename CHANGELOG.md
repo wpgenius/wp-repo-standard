@@ -2,6 +2,14 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.4 (2026-11-15)
+
+* adopt: fit the tooling to plugins without unit tests (#31)
+* adopt: spell out how to fit phpcs.xml.dist (#32)
+* adopt: exact command to run npm under a newer Node (#33)
+* adopt: Playground blueprint content is boilerplate-specific (#34)
+* adopt: say how the first release treats an existing changelog entry (#35)
+
 ## 1.1.3 (2026-11-15)
 
 * adopt: fit the tooling ci.yml and package.json to the plugin (#23)
