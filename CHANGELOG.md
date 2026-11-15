@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.5 (2026-11-15)
+
+* Replace the plugin icon with the stacked-layers design (#37)
+
 ## 1.1.4 (2026-11-15)
 
 * adopt: fit the tooling to plugins without unit tests (#31)
