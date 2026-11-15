@@ -21,7 +21,7 @@ Read `$STD/README.md`, section "Start a new plugin". It is the source of truth f
   - vendor and prefix;
   - the WordPress.org username(s) for `readme.txt` Contributors (optional; without it `readme.txt` gets a placeholder);
   - examples: *all* (the default) or *minimal* (without the daily report email, the log table and the "View details" popup). Minimal suits a plugin that won't use them.
-- **Author details:** author name and URI, and plugin URI. Never keep the boilerplate's author unless the user says so.
+- **Author details:** author name and URI, and plugin URI. Never keep the boilerplate's author unless the user says so. The plugin URI must differ from the author URI (the WordPress.org upload form refuses a plugin where they are the same); offer the GitHub repo URL.
 - **GitHub repo:** the owner (user or organisation) and the visibility. Say that on a private repo the "Protect main" ruleset needs a paid GitHub plan (Pro, Team or Enterprise); on GitHub Free choose public, or accept that `main` stays unprotected.
 - **Folder:** where to create it. Default: next to the current folder.
 - **Deploy target:** none (recommended), ftps, ssh or wporg.

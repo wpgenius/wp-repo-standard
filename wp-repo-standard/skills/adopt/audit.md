@@ -40,6 +40,7 @@ curl -fsS --max-time 10 https://api.wordpress.org/core/version-check/1.7/ | grep
 ```
 - Missing `readme.txt`: the release writes the changelog there, so one must be created.
 - **Plugin:** needs `Stable tag:` and `== Changelog ==`. **Theme:** needs `== Changelog ==` only.
+- **Plugin headed to WordPress.org:** the main file's `Plugin URI:` must differ from `Author URI:`; the WordPress.org upload form refuses a plugin where they are the same. If they match, suggest the repo or product page as the Plugin URI.
 - `Tested up to:` older than the latest WordPress (the `curl` result) makes Plugin Check in the tooling group fail until it's bumped after testing. Missing entirely also fails it, for plugins.
 
 ## 5. Standard files
