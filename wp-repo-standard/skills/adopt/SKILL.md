@@ -76,24 +76,36 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - A plugin needs a `Stable tag:` equal to the header version, plus an `== Changelog ==` section.
   - A theme needs `== Changelog ==` only.
   - If the file is missing, create one in WordPress readme format from the header fields and the answers in step 2. Seed `== Changelog ==` with the earlier versions you can find in tags or commit messages, newest first, so the history isn't lost.
+  - An entry for the current header version may stay: with no tags, the first release is that version, and the release keeps an existing `= X.Y.Z =` entry instead of adding a second one.
   - Keep every existing changelog entry.
 - **Header `Version:`** must be `X.Y.Z`. Fix it if it isn't, and say so.
 - **Plain blocks** (the audit's "Code shape" found `block.json` in `blocks/` and no build): in the merged `.distignore`, comment out `/blocks` with a note (`# /blocks  - kept: this plugin's blocks are plain JS, no build step`). This is the one allowed edit to the standard part. Exclude only what really is source, if anything.
 - **Tooling group** (if chosen):
   - Copy the files, including `phpstan.neon.dist` and `tests/phpstan/bootstrap.php`.
-  - Adapt the names to this repo: composer `name`, PHPCS `text_domain` and `prefixes`, the `.env.example` slug, the `paths` in `phpstan.neon.dist`, and the constants in `tests/phpstan/bootstrap.php` (the ones the main plugin file defines).
+  - Adapt the names to this repo: composer `name`, the `.env.example` slug, the `paths` in `phpstan.neon.dist`, and the constants in `tests/phpstan/bootstrap.php` (the ones the main plugin file defines).
+  - **Fit `phpcs.xml.dist`:**
+    - `text_domain`: the plugin's Text Domain (or slug).
+    - `prefixes`: the plugin's real function/option/hook prefix; keep a namespace element only if the plugin uses a PHP namespace (its own, never `WPGenius\MyPlugin`).
+    - `minimum_wp_version` = `Requires at least`, and `testVersion` = `Requires PHP` followed by `-` (e.g. `7.4-`), from the plugin header or `readme.txt`.
+    - The `src/` and `tests/` rules (FileName exclusions, test-only comment rules, the test bootstraps) are for the boilerplate's autoloaded layout: drop them, or point them at this plugin's folders, for a classic `includes/class-*.php` plugin.
   - **Fit `ci.yml` to this plugin.** The boilerplate's file tests the boilerplate's own layout. Remove what doesn't apply, and remove the same job names from the `needs:` list of the final `ci` job (otherwise it waits on jobs that don't exist):
     - `rename`: always remove; it tests the boilerplate's `bin/rename.sh`.
+    - Unit tests: without them (audit's "Code shape"), remove `composer test` from the PHP job and name it "PHP <version> syntax"; in `composer.json` drop `phpunit/phpunit`, `brain/monkey`, `yoast/phpunit-polyfills`, the `test` script and `autoload-dev`; don't copy `phpunit.xml.dist`, `tests/bootstrap.php`, `tests/TestCase.php` or `tests/Unit`.
     - `integration`: remove unless the plugin has integration tests (`tests/Integration`, `phpunit-integration.xml.dist`).
     - `js-css-lint`: without a build step, remove its `npm run build` and "build/ is committed" steps and rename it "JS/CSS lint"; without any JS or CSS, remove the job.
     - Then check the YAML (`actionlint` if installed) and that every name in `needs:` is a job that exists.
   - **Fit `package.json`:** without a build step or integration tests, keep only `@wordpress/scripts` and the `lint`, `lint:js`, `lint:css` and `format` scripts (pointed at this plugin's JS and CSS folders), and drop `build`, `start`, `env`, `test:integration*` and the block, interactivity and `@wordpress/env` dependencies. Likewise drop `.wp-env.json` and the integration PHPUnit config if copied.
-  - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch (the repo's `.nvmrc` says which, e.g. `nvm use`) before running npm, or run it with a matching Node (`npx -y node@22 …`).
+  - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch first (for example `nvm install && nvm use`, which reads `.nvmrc`). If they can't, run npm under a matching Node for this session only. `npx -y node@22 npm …` does **not** do that; use:
+    ```bash
+    NPM_CLI="$(dirname "$(readlink -f "$(command -v npm)")")/npm-cli.js"
+    npx -y node@22.12 "$NPM_CLI" install    # and the same for: run lint, run format
+    ```
+    (`node@22.12` or later meets the floor of the standard's `engines`.)
   - **Integrations:** if the audit found Elementor, WooCommerce or ACF code, PHPStan needs stubs for those classes: a stubs package where one exists (for example `php-stubs/woocommerce-stubs`, `php-stubs/acf-pro-stubs`) as a dev dependency listed under `scanFiles`, or a small stub file of the classes and methods the plugin uses, under `tests/phpstan/` and listed in `scanFiles`. Never `ignoreErrors` whole classes.
   - Run `composer phpstan` and `npm run lint` once each, and tell the user how many issues each reports, so the choice of blocking or report-only is informed.
   - Regenerate the lock files with `composer install` and `npm install`. Never copy the boilerplate's lock files.
 - **Community files** (if chosen): copy them and replace `wpgenius/wordpress-plugin-boilerplate` (security link in `.github/ISSUE_TEMPLATE/config.yml`) and the boilerplate's name with this repo's.
-- **Playground demo** (if chosen): copy `.wordpress-org/blueprints/blueprint.json`, replace the zip URL, slug and demo content with this plugin's (use its own shortcodes or blocks), and add the "Try it in your browser" link to the README with this repo's raw URL.
+- **Playground demo** (if chosen): copy `.wordpress-org/blueprints/blueprint.json`, replace the zip URL and slug, and add the "Try it in your browser" link to the README with this repo's raw URL. The `runPHP` step (it creates the boilerplate's example items and a page with its blocks) and `landingPage` are boilerplate-specific: rewrite them for this plugin, for example sample content it uses (its own shortcodes or blocks, sideloaded images) and landing on its admin or demo page.
 - **Slug:** if the audit says the repo name isn't a valid slug, `PLUGIN_SLUG` must be set (step 7).
 - **README:** add a short "How changes ship" section, adapted from the boilerplate's.
 
@@ -134,7 +146,7 @@ Commit and push the branch. Open one PR that closes every issue. In the body:
 - **Changes:** one line per change, under its issue.
 - **Verification:** what you checked.
 - **What happens on merge:**
-  - With no tags yet, this merge publishes `v<header version>` ("Initial release").
+  - With no tags yet, this merge publishes `v<header version>`: with the changelog entry `readme.txt` already has for that version, or "Initial release" if it has none.
   - With tags, it releases only if the zip changed compared with the last release (for example a `readme.txt` or header fix). Adding only workflows, scripts and ignore rules makes no release.
   - Deploys stay off until `DEPLOY_ENABLED=true`.
 
