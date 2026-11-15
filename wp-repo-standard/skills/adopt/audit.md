@@ -69,13 +69,14 @@ What the tooling group and `.distignore` must adapt to. The boilerplate's own la
 ```bash
 find blocks -name block.json -maxdepth 3 2>/dev/null | head -n 5
 ls -d build 2>/dev/null; grep -s '"build"' package.json
-ls -d tests/Integration phpunit-integration.xml.dist 2>/dev/null
+ls -d tests/Unit phpunit.xml.dist tests/Integration phpunit-integration.xml.dist 2>/dev/null
 grep -rlIE --include='*.php' --exclude-dir={vendor,node_modules,.git,.claude} 'Elementor\\|\bWC_|WooCommerce|\bacf_|ACF' . | head -n 5
 grep -s '"node"' package.json; node -v 2>/dev/null
 ```
 Report each:
 - **Blocks:** `block.json` under `blocks/` with no `build/` and no `build` script means **plain blocks** whose runtime files live in `blocks/`. The standard `.distignore` excludes `/blocks` (it expects compiled output in `build/`), so this plugin would ship without its blocks unless that rule is commented out (step 4).
 - **Build step:** none means the tooling's block-build CI job and the `build`/`start` npm scripts don't apply.
+- **Unit tests:** no `tests/Unit` and no `phpunit.xml.dist` means the tooling's `composer test` step, the PHPUnit dev dependencies and the test bootstrap don't apply.
 - **Integration tests:** none means the tooling's integration job and the `env`/`test:integration` scripts and `@wordpress/env` don't apply.
 - **Integrations:** code that extends Elementor, WooCommerce or ACF classes makes PHPStan report "class not found" for them until stubs are added (step 4).
 - **Node:** compare `node -v` with the standard's `engines` (in `$STD/package.json`). An older Node makes `npm run lint` crash (for example ERR_REQUIRE_ESM on Node 22.10).
