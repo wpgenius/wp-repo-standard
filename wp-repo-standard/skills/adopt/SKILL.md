@@ -24,7 +24,7 @@ Stop and explain if any of these is true:
 If only this session can't reach GitHub as an admin (no `gh`, not signed in, a cloud session) but the user is an admin, don't stop: follow "Where it runs" in the rules.
 
 ## 2. One round of questions
-Ask everything at once, with the recommended answer first:
+Ask everything in one round, with the recommended answer first. A question tool may take only a few questions per call (AskUserQuestion: 4): group them, for example the optional groups (tooling, community files, Playground) as one multi-select, or use two calls back to back. Skip questions that don't apply.
 - **Linked-issue rule:** must every PR close an issue?
   - *on* (recommended, the standard): the changelog lists the closed issues;
   - *off*: PRs need no issue; the check always passes and the changelog uses PR titles.
@@ -40,6 +40,8 @@ Ask everything at once, with the recommended answer first:
 - **Tooling group:** add CI, coding standards, PHPStan and local Docker from the boilerplate? Warn that existing code may fail the jobs: With `ci.yml` in the repo, the ruleset requires the "CI" check, so a failing job blocks every merge until it's fixed or made report-only.
   - PHPCS and PHPStan usually report many issues in older code. Offer to keep either job report-only (`continue-on-error: true`) or to drop it.
   - Plugin Check fails if `readme.txt` "Tested up to" is behind the latest WordPress (the audit says) and on anything WordPress.org would reject. Offer to drop the job for private client plugins.
+  - JS/CSS lint usually reports many issues too (mostly formatting, which `npm run format` fixes). Same choice: blocking, report-only or dropped.
+  - Say which boilerplate-only parts will be left out, from the audit's "Code shape": the block build, integration tests, the rename job.
 - **Community files:** add `CONTRIBUTING.md`, `SECURITY.md`, the issue forms and the PR template? Recommended for public repos; optional for private ones.
 - **Playground demo:** only for a public plugin. Add the blueprint and a "Try it in your browser" link? It works once the repo has a release.
 - **Version mismatch:** only if the audit warned that the header version is ahead of the latest tag. How should they be lined up? For example, a `release:minor` or `release:major` label on this PR, or correcting the header.
@@ -76,10 +78,19 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - If the file is missing, create one in WordPress readme format from the header fields and the answers in step 2. Seed `== Changelog ==` with the earlier versions you can find in tags or commit messages, newest first, so the history isn't lost.
   - Keep every existing changelog entry.
 - **Header `Version:`** must be `X.Y.Z`. Fix it if it isn't, and say so.
+- **Plain blocks** (the audit's "Code shape" found `block.json` in `blocks/` and no build): in the merged `.distignore`, comment out `/blocks` with a note (`# /blocks  - kept: this plugin's blocks are plain JS, no build step`). This is the one allowed edit to the standard part. Exclude only what really is source, if anything.
 - **Tooling group** (if chosen):
   - Copy the files, including `phpstan.neon.dist` and `tests/phpstan/bootstrap.php`.
   - Adapt the names to this repo: composer `name`, PHPCS `text_domain` and `prefixes`, the `.env.example` slug, the `paths` in `phpstan.neon.dist`, and the constants in `tests/phpstan/bootstrap.php` (the ones the main plugin file defines).
-  - Run `composer phpstan` once and tell the user how many issues it reports, so the choice of blocking or report-only is informed.
+  - **Fit `ci.yml` to this plugin.** The boilerplate's file tests the boilerplate's own layout. Remove what doesn't apply, and remove the same job names from the `needs:` list of the final `ci` job (otherwise it waits on jobs that don't exist):
+    - `rename`: always remove; it tests the boilerplate's `bin/rename.sh`.
+    - `integration`: remove unless the plugin has integration tests (`tests/Integration`, `phpunit-integration.xml.dist`).
+    - `js-css-lint`: without a build step, remove its `npm run build` and "build/ is committed" steps and rename it "JS/CSS lint"; without any JS or CSS, remove the job.
+    - Then check the YAML (`actionlint` if installed) and that every name in `needs:` is a job that exists.
+  - **Fit `package.json`:** without a build step or integration tests, keep only `@wordpress/scripts` and the `lint`, `lint:js`, `lint:css` and `format` scripts (pointed at this plugin's JS and CSS folders), and drop `build`, `start`, `env`, `test:integration*` and the block, interactivity and `@wordpress/env` dependencies. Likewise drop `.wp-env.json` and the integration PHPUnit config if copied.
+  - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch (the repo's `.nvmrc` says which, e.g. `nvm use`) before running npm, or run it with a matching Node (`npx -y node@22 …`).
+  - **Integrations:** if the audit found Elementor, WooCommerce or ACF code, PHPStan needs stubs for those classes: a stubs package where one exists (for example `php-stubs/woocommerce-stubs`, `php-stubs/acf-pro-stubs`) as a dev dependency listed under `scanFiles`, or a small stub file of the classes and methods the plugin uses, under `tests/phpstan/` and listed in `scanFiles`. Never `ignoreErrors` whole classes.
+  - Run `composer phpstan` and `npm run lint` once each, and tell the user how many issues each reports, so the choice of blocking or report-only is informed.
   - Regenerate the lock files with `composer install` and `npm install`. Never copy the boilerplate's lock files.
 - **Community files** (if chosen): copy them and replace `wpgenius/wordpress-plugin-boilerplate` (security link in `.github/ISSUE_TEMPLATE/config.yml`) and the boilerplate's name with this repo's.
 - **Playground demo** (if chosen): copy `.wordpress-org/blueprints/blueprint.json`, replace the zip URL, slug and demo content with this plugin's (use its own shortcodes or blocks), and add the "Try it in your browser" link to the README with this repo's raw URL.
@@ -94,6 +105,7 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - Everything needed at runtime must ship, e.g. `build/`, `vendor/` for runtime dependencies, `languages/`.
 
   Fix `.distignore` until the list is right.
+- **Ignored runtime files:** run the audit's section 8 check again, now with the merged `.gitignore`. Nothing under a runtime folder may be ignored; fix the rule and commit the missing files (they may be missing from `main` today).
 - **PHP syntax:** run `find . -name '*.php' -not -path './vendor/*' -not -path './node_modules/*' -exec php -l {} \;`.
 
 ## 6. Code restructuring: propose only
