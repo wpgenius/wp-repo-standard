@@ -2,6 +2,16 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.3 (2026-11-15)
+
+* adopt: fit the tooling ci.yml and package.json to the plugin (#23)
+* adopt: plain-JS blocks are excluded by the standard .distignore (#24)
+* audit: catch ignored files the plugin needs at runtime (#25)
+* Check gh scopes and HTTPS push credentials before any work (#26)
+* adopt: check the Node version before npm lint (#27)
+* adopt: PHPStan stubs for plugins that extend other plugins (#28)
+* adopt: question round doesn't fit a 4-question tool (#29)
+
 ## 1.1.2 (2026-11-14)
 
 * Ignore-file merge leaves no .distignore when the repo has none (#19)
