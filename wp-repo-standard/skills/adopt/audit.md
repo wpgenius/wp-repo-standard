@@ -66,6 +66,7 @@ done
 ## 6. Optional groups
 ```bash
 for f in .github/workflows/ci.yml composer.json phpcs.xml.dist phpstan.neon.dist tests/phpstan/bootstrap.php phpunit.xml.dist \
+  bin/presubmit/run.sh bin/asset-guard.js \
   package.json .nvmrc .editorconfig .env.example docker-compose.yml \
   CONTRIBUTING.md SECURITY.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/bug_report.yml \
   .github/ISSUE_TEMPLATE/feature_request.yml .github/ISSUE_TEMPLATE/config.yml .wordpress-org/blueprints/blueprint.json; do
