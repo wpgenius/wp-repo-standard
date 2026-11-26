@@ -33,7 +33,7 @@ Before creating anything, confirm the plan in one message:
 - the deploy key it will create.
 
 ## 3. Build the plugin locally
-1. **Get a fresh copy.** Clone with a fresh history, as the README describes ("clone this one and start a fresh history").
+1. **Get a fresh copy.** Copy the pinned standard into the new folder without its history, never a new clone: `rsync -a --exclude=.git "$STD/" "<folder>/" && git -C "<folder>" init --quiet -b main`.
 2. **Rename.** Run `bin/rename.sh` with the chosen values and `--yes`, for example:
    ```bash
    bin/rename.sh "Acme Events" --vendor Acme --prefix acme_events --description "…" --author "…" --author-uri "…" --contributors wporg-user --github OWNER/SLUG --full --yes
