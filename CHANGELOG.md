@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.16 (2026-11-26)
+
+* Pin the standard to boilerplate main after #114 (#68)
+
 ## 1.1.15 (2026-11-26)
 
 * Check that PHPCS scanned files (#66)
