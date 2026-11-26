@@ -1,6 +1,6 @@
 # wp-repo-standard
 
-Source of the **WP Repo Standard** Claude Code plugin: `/wp-repo-standard:adopt` brings an existing WordPress plugin or theme repo up to the [wordpress-plugin-boilerplate](https://github.com/wpgenius/wordpress-plugin-boilerplate) standard, and `/wp-repo-standard:new` starts a new plugin from it.
+Source of the **WP Repo Standard** Claude Code plugin: `/wp-repo-standard:adopt` brings an existing WordPress plugin or theme repo up to the [wordpress-plugin-boilerplate](https://github.com/wpgenius/wordpress-plugin-boilerplate) standard, `/wp-repo-standard:new` starts a new plugin from it, and `/wp-repo-standard:submit` gets a plugin through WordPress.org review.
 
 **What the plugin does, how to install it and what it needs: [wp-repo-standard/README.md](wp-repo-standard/README.md).**
 

@@ -54,6 +54,15 @@ done
 ```
 The first eight are copied as-is; the two ignore files are merged. `differs` on an already-adopted repo means the standard has moved on: update them.
 
+WordPress skills for Claude (copied as whole folders):
+```bash
+for s in wp-plugin-development wp-plugin-directory-guidelines; do d=".claude/skills/$s"
+  if [ ! -d "$STD/$d" ]; then echo "not in standard  $d"; elif [ ! -d "$d" ]; then echo "missing          $d"
+  elif diff -rq "$STD/$d" "$d" >/dev/null; then echo "same             $d"; else echo "differs          $d"; fi
+done
+```
+`wp-plugin-development` goes in every plugin repo. `wp-plugin-directory-guidelines` goes in public plugins and plugins deployed to WordPress.org. Skip both for a theme. `not in standard` means the boilerplate doesn't ship them yet: skip them and say so.
+
 ## 6. Optional groups
 ```bash
 for f in .github/workflows/ci.yml composer.json phpcs.xml.dist phpstan.neon.dist tests/phpstan/bootstrap.php phpunit.xml.dist \

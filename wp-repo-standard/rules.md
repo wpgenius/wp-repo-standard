@@ -1,6 +1,6 @@
 # Repo standard: shared rules
 
-Both `/wp-repo-standard:new` and `/wp-repo-standard:adopt` follow these rules.
+`/wp-repo-standard:new`, `/wp-repo-standard:adopt` and `/wp-repo-standard:submit` follow these rules.
 **The user's own instructions win:** if their CLAUDE.md or messages say otherwise, follow them.
 
 ## Source of the standard
@@ -9,7 +9,7 @@ The standard lives in one place: **wpgenius/wordpress-plugin-boilerplate**, bran
 
 If the user keeps their own public fork of the boilerplate as their standard, they set `REPO_STANDARD_SOURCE=owner/name` in their environment; the download below uses it.
 
-The downloaded files are only **read and copied** into the user's repo. Never run a script from the download itself. The only scripts you run are the user's own copies inside their repo, as each command describes: `bin/setup-github.sh` (with their yes) and, in `/wp-repo-standard:new`, `bin/rename.sh`.
+The downloaded files are only **read and copied** into the user's repo. Never run a script from the download itself. The only scripts you run are the user's own copies inside their repo, as each command describes: `bin/setup-github.sh` (with their yes), in `/wp-repo-standard:new` `bin/rename.sh`, and in `/wp-repo-standard:submit` the pre-submission scripts the repo has.
 
 ## Shared steps
 
@@ -94,6 +94,7 @@ If `gh` is missing, not signed in, or not an admin (common in cloud sessions), d
 - **Deploys:** `deploy.yml`, with an on/off switch. It deploys only while the repo variable `DEPLOY_ENABLED` is `true`, which is off by default. `DEPLOY_METHOD` picks the target: `ftps`, `ssh` or `wporg`.
 - **Linked issue check:** `linked-issue.yml`. A PR must close an issue, and the release changelog is built from those issues. It has an on/off switch, the repo variable `REQUIRE_LINKED_ISSUE`: on unless it is `false`. When off, the check still runs but always passes (so the required check stays green), and the changelog uses PR titles. On is the standard; off suits repos that don't want an issue for every PR.
 - **Dependabot** for GitHub Actions.
+- **WordPress skills for Claude:** `.claude/skills/wp-plugin-development` (security, hooks, lifecycle) and `.claude/skills/wp-plugin-directory-guidelines` (the WordPress.org guidelines and Plugin Check), copied from WordPress/agent-skills by the boilerplate and kept current there. They're committed to the repo, so Claude uses them in every session there, and they never ship.
 - **Setup script:** `bin/setup-github.sh` applies the GitHub settings that templates don't copy:
   - squash-only merges;
   - the release labels;

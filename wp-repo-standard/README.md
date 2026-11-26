@@ -10,6 +10,7 @@ The standard itself lives in [wpgenius/wordpress-plugin-boilerplate](https://git
 |---|---|
 | `/wp-repo-standard:adopt [path]` | Brings an existing plugin or theme repo up to the standard. It audits the repo, asks one round of questions, opens one issue per change, adds the files on a branch and opens a single PR. Code restructuring is only proposed, never done without your yes. |
 | `/wp-repo-standard:new [name]` | Starts a new plugin from the boilerplate: renames everything, resets the version to 1.0.0, creates the GitHub repo, protects `main` and pushes, so the first release is v1.0.0. |
+| `/wp-repo-standard:submit [path]` | Gets a plugin ready for the WordPress.org directory and through review: audits the code, readme, licences and package against what reviewers flag, runs the repo's pre-submission checks, fixes findings through issues and one PR, says what to upload and drafts replies to review emails, then sets up WordPress.org deploys after approval. |
 
 Both ask before anything outward-facing: creating a repo, changing GitHub settings, creating a deploy key, opening or merging a PR.
 
