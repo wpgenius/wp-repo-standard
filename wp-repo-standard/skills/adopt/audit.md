@@ -44,6 +44,17 @@ curl -fsS --max-time 10 https://api.wordpress.org/core/version-check/1.7/ | grep
 - `Tested up to:` older than the latest WordPress (the `curl` result) makes Plugin Check in the tooling group fail until it's bumped after testing. Missing entirely also fails it, for plugins.
 
 ## 5. Standard files
+**Recorded standard** (repos adopted with plugin 1.1.17 or later have `.github/standard-version`):
+```bash
+OLD=$(grep -oE '^[0-9a-f]{40}' .github/standard-version 2>/dev/null | head -n 1)
+if [ -z "$OLD" ]; then echo "no recorded standard"
+elif [ "$OLD" = "$STD_SHA" ]; then echo "recorded standard is the pinned one: nothing new upstream"
+else git -C "$STD" fetch --quiet --depth 1 "https://github.com/$STD_REPO.git" "$OLD" \
+  && git -C "$STD" diff --name-status "$OLD" "$STD_SHA" || echo "could not fetch the recorded standard $OLD"
+fi
+```
+The list is every file the standard changed since this repo last took it, tooling files included. For each one the repo has: a file copied as-is is replaced; a fitted file (`ci.yml`, `composer.json`, `phpcs.xml.dist`, `phpstan.neon.dist`, `package.json`, community files and the like) gets that change carried over by hand, shown by `git -C "$STD" diff "$OLD" "$STD_SHA" -- <file>`; a merged file is merged again. With no record, use the comparison in section 6.
+
 ```bash
 for f in .github/workflows/release.yml .github/workflows/deploy.yml .github/workflows/linked-issue.yml \
   .github/scripts/lib.sh .github/scripts/release-plan.sh .github/scripts/stamp-version.sh \
@@ -52,7 +63,7 @@ for f in .github/workflows/release.yml .github/workflows/deploy.yml .github/work
   elif cmp -s "$STD/$f" "$f"; then echo "same             $f"; else echo "differs          $f"; fi
 done
 ```
-The first eight are copied as-is; the two ignore files are merged. `differs` on an already-adopted repo means the standard has moved on: update them.
+The workflows, scripts and setup script are copied as-is; `dependabot.yml` and the two ignore files are merged. `differs` on an already-adopted repo means the standard has moved on, or (for merged files) that the repo has its own additions: check which.
 
 WordPress skills for Claude (copied as whole folders):
 ```bash
@@ -66,13 +77,24 @@ done
 ## 6. Optional groups
 ```bash
 for f in .github/workflows/ci.yml composer.json phpcs.xml.dist phpstan.neon.dist tests/phpstan/bootstrap.php phpunit.xml.dist \
-  bin/presubmit/run.sh bin/asset-guard.js \
+  bin/presubmit/run.sh bin/presubmit/activate.php bin/presubmit/plugin-check.php bin/presubmit/runtime.php bin/asset-guard.js \
   package.json .nvmrc .editorconfig .env.example docker-compose.yml \
   CONTRIBUTING.md SECURITY.md .github/pull_request_template.md .github/ISSUE_TEMPLATE/bug_report.yml \
   .github/ISSUE_TEMPLATE/feature_request.yml .github/ISSUE_TEMPLATE/config.yml .wordpress-org/blueprints/blueprint.json; do
-  [ -f "$STD/$f" ] || continue; if [ -f "$f" ]; then echo "present  $f"; else echo "missing  $f"; fi
+  [ -f "$STD/$f" ] || continue
+  if [ ! -f "$f" ]; then echo "missing  $f"; elif cmp -s "$STD/$f" "$f"; then echo "same     $f"; else echo "differs  $f"; fi
 done
+[ -d bin/presubmit ] && { [ -f bin/presubmit/plugin.php ] && echo "present  bin/presubmit/plugin.php" || echo "missing  bin/presubmit/plugin.php"; }
 ```
+- **Copied unchanged** (`bin/presubmit/run.sh`, `activate.php`, `plugin-check.php`, `runtime.php`, `bin/asset-guard.js`): `differs` means take the standard's file. `bin/presubmit/plugin.php` is per plugin: only report it missing.
+- **Fitted files differ by design**, because they carry the plugin's names and its own steps. When section 5 has a recorded standard, its list says which changed upstream. Without one, compare with the boilerplate's names swapped for the plugin's, so only real standard changes are left (set `SLUG` to the Text Domain and `PREFIX` to the plugin's prefix):
+  ```bash
+  SLUG=acme-events PREFIX=acme_events
+  UPPER=$(printf %s "$PREFIX" | tr '[:lower:]' '[:upper:]')
+  swap() { sed -e "s/wordpress-plugin-boilerplate/$SLUG/g" -e "s/MYPLUGIN/$UPPER/g" -e "s/myplugin/$PREFIX/g" "$1"; }
+  diff <(swap "$STD/$f") "$f"   # for each fitted file f that differs
+  ```
+  Lines that still differ only by namespace (`WPGenius\MyPlugin` against the plugin's) or by the plugin's own CI steps and paths are adaptations, not changes to carry over.
 Group them for the user: **tooling** (CI, coding standards, static analysis, tests, local Docker), **community files**, and the **Playground demo** (public plugins with a release only).
 
 ## 7. Code shape

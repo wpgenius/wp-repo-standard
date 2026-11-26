@@ -69,11 +69,15 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
 - **Copy as-is** from `$STD`:
   - `.github/workflows/release.yml`, `deploy.yml` and `linked-issue.yml`;
   - `.github/scripts/*`;
-  - `.github/dependabot.yml`;
   - `bin/setup-github.sh` (keep it executable);
   - for a plugin, the WordPress skills from `$STD/.claude/skills/` as whole folders: `wp-plugin-development` always, and `wp-plugin-directory-guidelines` for a public plugin or a WordPress.org deploy. They replace any older copy of the same folder; other skills in `.claude/skills/` stay. `.distignore` already keeps `/.claude` out of the zip.
 - **Merge** each of `.gitignore` and `.distignore`:
   as "Merge an ignore file" in the rules describes, including reading the "Project-specific" block afterwards.
+- **Merge `.github/dependabot.yml`:** take the standard's file, then add back the repo's own `updates` entries, groups and ignore rules that the standard doesn't have (for example a group for a bundled library, with the exclude-pattern it needs on the catch-all group). Say in the PR what was kept.
+- **Record the standard:** write the pinned commit to `.github/standard-version`, so a later run can see what changed upstream since (audit section 5):
+  ```bash
+  git -C "$STD" log -1 --format='%H%n# wp-repo-standard pinned standard, %cs' > .github/standard-version
+  ```
 - **`readme.txt`:**
   - A plugin needs a `Stable tag:` equal to the header version, plus an `== Changelog ==` section.
   - A theme needs `== Changelog ==` only.
@@ -99,6 +103,7 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - **Fit `package.json`:** without a build step or integration tests, keep only `@wordpress/scripts` and the `lint`, `lint:js`, `lint:css` and `format` scripts (pointed at this plugin's JS and CSS folders), and drop `build`, `start`, `env`, `test:integration*` and the block, interactivity and `@wordpress/env` dependencies. Likewise drop `.wp-env.json` and the integration PHPUnit config if copied.
   - **Pre-submission checks:** copy `bin/presubmit/` (keep `run.sh` executable). They run Plugin Check and `WP_DEBUG` runs in WordPress Playground on the packaged files, for `/wp-repo-standard:submit`. With a build step, also copy `bin/asset-guard.js` and add `"postbuild": "node bin/asset-guard.js"` to `package.json`, so the generated `build/*.asset.php` files get the `ABSPATH` guard.
     - **Adapt them to this plugin:** copy `activate.php`, `plugin-check.php`, `runtime.php` and `run.sh` unchanged; they're generic, and the standard's `phpcs.xml.dist` excludes `bin/presubmit/` (keep that exclude when fitting it). Write only `bin/presubmit/plugin.php`, which returns an array of optional keys (its header comment explains each): `prefix` (default: the Text Domain with `-` as `_`), `setup` (create the content to show), `render` (this plugin's block markup and shortcodes), `check_render` (checks on the rendered HTML), `settings_page`, `before_deactivate`, `before_uninstall`, `after_uninstall`. Replace every boilerplate example in it with this plugin's own; remove keys that don't apply.
+  - **Update run, older pre-submission scripts:** a `bin/presubmit/runtime.php` with this plugin's code in it (from before `plugin.php`): move that code into `plugin.php` keys (`render`, `check_render`, `settings_page`, `before_uninstall` and so on), then take the four generic files as they are.
   - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch to the version in `.nvmrc` with their Node version manager, following that tool's own instructions, then continue. If they can't switch now, don't run the lint tools locally: say so in the PR, and let CI run them.
   - **Integrations:** if the audit found Elementor, WooCommerce or ACF code, PHPStan needs stubs for those classes: a stubs package where one exists (for example `php-stubs/woocommerce-stubs`, `php-stubs/acf-pro-stubs`) as a dev dependency listed under `scanFiles`, or a small stub file of the classes and methods the plugin uses, under `tests/phpstan/` and listed in `scanFiles`. Never `ignoreErrors` whole classes.
   - Run `composer phpstan` and `npm run lint` once each, and tell the user how many issues each reports, so the choice of blocking or report-only is informed.
@@ -156,7 +161,11 @@ Commit and push the branch. Open one PR that closes every issue. In the body:
 Check CI once and report. Merge only when asked. After the merge, check the Release run once, and report the release URL or the error.
 
 ## Already on the standard?
-Run this again to update. The audit lists the files that `differ` from the standard this plugin version is pinned to (update the plugin first to get the newest). Update them the same way, through issues and one PR.
+Run this again to update. Update the plugin first: its version decides which standard is pinned.
+- **With `.github/standard-version`:** the audit's "Recorded standard" check lists every file the standard changed since, tooling files included. Replace the copied files, carry the change into fitted files, merge the merged ones again, and update `.github/standard-version` in the same PR.
+- **Without it** (adopted before plugin 1.1.17): use section 6's comparison with the names swapped to find real standard changes, then write the record in the same PR.
+
+Update through issues and one PR, as on the first run.
 
 ## Last: report problems with this plugin
 If this run hit problems in the plugin or the standard (not in the repo), follow "Report problems with this plugin" in the rules.

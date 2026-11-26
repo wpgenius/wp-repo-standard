@@ -124,6 +124,7 @@ If the user says no, drop it. Never send a report without showing it first.
 - **Deploys:** `deploy.yml`, with an on/off switch. It deploys only while the repo variable `DEPLOY_ENABLED` is `true`, which is off by default. `DEPLOY_METHOD` picks the target: `ftps`, `ssh` or `wporg`.
 - **Linked issue check:** `linked-issue.yml`. A PR must close an issue, and the release changelog is built from those issues. It has an on/off switch, the repo variable `REQUIRE_LINKED_ISSUE`: on unless it is `false`. When off, the check still runs but always passes (so the required check stays green), and the changelog uses PR titles. On is the standard; off suits repos that don't want an issue for every PR.
 - **Dependabot** for GitHub Actions.
+- **Recorded standard:** `.github/standard-version` holds the full commit of the standard the repo last took (written by adopt and new), so a later adopt run lists exactly what changed upstream since.
 - **WordPress skills for Claude:** `.claude/skills/wp-plugin-development` (security, hooks, lifecycle) and `.claude/skills/wp-plugin-directory-guidelines` (the WordPress.org guidelines and Plugin Check), copied from WordPress/agent-skills by the boilerplate and kept current there. They're committed to the repo, so Claude uses them in every session there, and they never ship.
 - **Setup script:** `bin/setup-github.sh` applies the GitHub settings that templates don't copy:
   - squash-only merges;

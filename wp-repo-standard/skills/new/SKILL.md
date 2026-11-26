@@ -40,14 +40,15 @@ Before creating anything, confirm the plan in one message:
    ```
    It renames every file and string, fills in the plugin header, resets the version to 1.0.0, and empties the changelog. If the README describes a different rename step, follow the README.
    Use `--minimal` instead of `--full` if chosen, and leave out `--contributors` if the user has no WordPress.org username.
-3. **Hand edits.** Anything the script reports as left over, `readme.txt` (description, FAQ, and Contributors if it's still the placeholder), and regenerate the `.pot` file (`composer make-pot`) if Composer is set up.
-4. **Version check.** Confirm the header `Version:`, the `*_VERSION` constant and `Stable tag:` all say `1.0.0`, and that `readme.txt` "Tested up to" is the latest WordPress (Plugin Check in CI fails otherwise).
-5. **Write a README.** Replace `README.md` with a short one for this plugin: name, description, a "Development" pointer and "How changes ship". Keep the boilerplate's developer notes where they still apply.
+3. **Record the standard** (after the rename, which would rewrite names in it): `git -C "$STD" log -1 --format='%H%n# wp-repo-standard pinned standard, %cs' > .github/standard-version`. Later runs of `/wp-repo-standard:adopt` use it to see what changed upstream.
+4. **Hand edits.** Anything the script reports as left over, `readme.txt` (description, FAQ, and Contributors if it's still the placeholder), and regenerate the `.pot` file (`composer make-pot`) if Composer is set up.
+5. **Version check.** Confirm the header `Version:`, the `*_VERSION` constant and `Stable tag:` all say `1.0.0`, and that `readme.txt` "Tested up to" is the latest WordPress (Plugin Check in CI fails otherwise).
+6. **Write a README.** Replace `README.md` with a short one for this plugin: name, description, a "Development" pointer and "How changes ship". Keep the boilerplate's developer notes where they still apply.
    - **Public repo:** keep a "Try it in your browser" link to `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/OWNER/SLUG/main/.wordpress-org/blueprints/blueprint.json`. It works from the first release on.
    - **Private repo:** leave the Playground link out (Playground can't download a private release). The blueprint file can stay; it isn't shipped.
    - Remove the boilerplate's `.wordpress-org/screenshot-*` files, or replace them with this plugin's.
    - **WordPress skills:** keep `.claude/skills/wp-plugin-development`. Keep `.claude/skills/wp-plugin-directory-guidelines` for a public plugin or a `wporg` deploy target, and remove it otherwise.
-6. **Check:**
+7. **Check:**
    - No leftover boilerplate names (anything unintended is a miss):
      ```bash
      grep -rIn -e wordpress-plugin-boilerplate -e 'Plugin boilerplate for WordPress' -ie myplugin --exclude-dir={.git,vendor,node_modules} .
