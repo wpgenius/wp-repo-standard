@@ -13,7 +13,7 @@ Source of the **WP Repo Standard** Claude Code plugin: `/wp-repo-standard:adopt`
 
 | Path | What |
 |---|---|
-| `wp-repo-standard/` | The plugin: `.claude-plugin/plugin.json`, the icon, `skills/`, `rules.md`, its README and LICENSE. This folder is what the Claude plugin directory reviews and what Claude Code installs. |
+| `wp-repo-standard/` | The plugin: `.claude-plugin/plugin.json`, `skills/`, `rules.md`, its README and LICENSE. No images: the directory refuses unread images from organisations that aren't Verified, so the icon lives at the repo root (`.claude-plugin/icon.png`) until then (#59). This folder is what the Claude plugin directory reviews and what Claude Code installs. |
 | `.claude-plugin/marketplace.json` | Lets people install straight from this repo (`source: ./wp-repo-standard`). |
 | `.github/` | CI, the release workflow and its scripts. Not part of the plugin. |
 | `CHANGELOG.md` | Written by the release workflow. |
