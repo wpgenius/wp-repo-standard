@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.14 (2026-11-26)
+
+* Report adopt/new problems back to wp-repo-standard (#44)
+
 ## 1.1.13 (2026-11-26)
 
 * Pin the standard to boilerplate main after v2.0.10 (#63)
