@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.9 (2026-11-26)
+
+* Use the boilerplate's pre-submission scripts and asset guard (#53)
+
 ## 1.1.8 (2026-11-26)
 
 * Adopt and new add the WordPress agent skills (#50)
