@@ -91,3 +91,6 @@ The review team emails the SVN address `https://plugins.svn.wordpress.org/<slug>
 6. **Switch on:** `gh variable set DEPLOY_ENABLED --body true`, with the user's yes, then run Deploy for the latest release with "deploy" ticked. From then on, every release deploys to WordPress.org on its own.
 
 Check the Deploy run once and report the result, and the plugin page `https://wordpress.org/plugins/<slug>/` once it's live.
+
+## Last: report problems with this plugin
+If this run hit problems in the plugin or the standard (not in the repo), follow "Report problems with this plugin" in the rules.

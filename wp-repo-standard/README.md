@@ -43,13 +43,15 @@ Updates: `/plugin marketplace update wpgenius`, or turn on auto-update for the m
 
 ## Data and network use
 
-The plugin has no server of its own: nothing is sent to WPGenius, and it collects or stores no personal data. While it works on your repo, it contacts only these services:
+The plugin has no server of its own and collects or stores no personal data. Nothing is sent to WPGenius unless you agree to a problem report (below). While it works on your repo, it contacts only these services:
 
 | Service | What for | What is sent |
 |---|---|---|
 | **GitHub** (`github.com`, through `git` and the GitHub CLI) | Download the public boilerplate; read the repo's settings; create the repo, issues, PRs, labels, the ruleset and the release deploy key; push the branch | Your repo's code and the issue and PR text, to your own GitHub repo, signed in as you. Every outward step is confirmed with you first. |
 | **WordPress.org** (`api.wordpress.org`) | Look up the latest WordPress version, to check `readme.txt` "Tested up to" | Nothing about you or your repo (a plain public request) |
 | **Packagist and npm** | Only if you add the optional tooling group: `composer install` and `npm install` download the dev tools | The package names in `composer.json` and `package.json` |
+
+**Problem reports:** when a command hits a problem in this plugin or the standard, it ends by showing you a short report (plugin version, pinned standard, shell and OS, what failed and the fix that worked) with nothing that identifies your project. Only with your yes does it open an issue on [wpgenius/wp-repo-standard](https://github.com/wpgenius/wp-repo-standard/issues), as you. Maintainers can set `WP_REPO_STANDARD_MAINTAINER_SESSION` to the name of their maintenance Claude session to get reports there instead.
 
 Deploys (FTPS, SSH, WordPress.org SVN) run later in your repo's GitHub Actions, not in this plugin, and stay off until you turn them on.
 

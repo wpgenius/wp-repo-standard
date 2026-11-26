@@ -156,3 +156,6 @@ Check CI once and report. Merge only when asked. After the merge, check the Rele
 
 ## Already on the standard?
 Run this again to update. The audit lists the files that `differ` from the standard this plugin version is pinned to (update the plugin first to get the newest). Update them the same way, through issues and one PR.
+
+## Last: report problems with this plugin
+If this run hit problems in the plugin or the standard (not in the repo), follow "Report problems with this plugin" in the rules.
