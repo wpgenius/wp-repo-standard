@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.15 (2026-11-26)
+
+* Check that PHPCS scanned files (#66)
+
 ## 1.1.14 (2026-11-26)
 
 * Report adopt/new problems back to wp-repo-standard (#44)
