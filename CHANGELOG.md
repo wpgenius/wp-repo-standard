@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.7 (2026-11-26)
+
+* Remove the download-and-run Node command from adopt (#48)
+
 ## 1.1.6 (2026-11-15)
 
 * Playground blueprint: no core-file sample content, run it once before the PR (#39)
