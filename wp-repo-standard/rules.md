@@ -1,6 +1,6 @@
 # Repo standard: shared rules
 
-`/wp-repo-standard:new`, `/wp-repo-standard:adopt` and `/wp-repo-standard:submit` follow these rules.
+`/wp-repo-standard:new`, `/wp-repo-standard:adopt` and `/wp-repo-standard:submit` follow these rules, and each ends with "Report problems with this plugin".
 **The user's own instructions win:** if their CLAUDE.md or messages say otherwise, follow them.
 
 ## Source of the standard
@@ -93,6 +93,25 @@ If `gh` is missing, not signed in, or not an admin (common in cloud sessions), d
 - **Shell:** commands must work in zsh as well as bash. zsh doesn't split unquoted variables or `${var:+--flag "$var"}` into separate words, so write optional flags out explicitly (for example `gh issue create --label changelog:skip …`), and avoid globs that fail when nothing matches.
 - **Outward-facing steps:** creating a repo, applying GitHub settings, creating a deploy key, opening or merging a PR. Confirm each one first, unless the user already asked for it in this conversation.
 - **CI:** after opening a PR, check CI once and report the result. Don't poll in a loop, and merge only when the user asks.
+
+## Report problems with this plugin
+
+While a command runs, note every problem that lies in this plugin or in the standard, not in the user's repo: a command that fails or doesn't work in zsh or on macOS, a missing or wrong step, a standard file that doesn't fit, a check that gives a wrong result. For each, keep what you were doing (command and step), what happened, and the fix that worked. Problems in the user's own code are not reports.
+
+At the end of the run, if there is at least one, write one report:
+- **Title:** `<command>: <short problem>`, for example `adopt: audit misses unguarded asset files`.
+- **Body:** this plugin's version (`version` in `${CLAUDE_PLUGIN_ROOT}/.claude-plugin/plugin.json`), the pinned standard (the `Standard:` line from the download), the shell and OS, then each problem: step, what happened, the fix that worked.
+- **Privacy:** nothing that identifies the user's project. No repo, client or site names, hosts, paths, code, issue text or secrets; use placeholders such as `OWNER/REPO` and `<plugin>`. Show the user the full text before sending it anywhere.
+
+Then, with the user's yes:
+1. **Maintainer session:** if the environment variable `WP_REPO_STANDARD_MAINTAINER_SESSION` is set and a session with that exact name is listed by `ListAgents`, send the report there with `SendMessage`. That session maintains this plugin, so no issue is needed.
+2. **Otherwise, an issue** on wpgenius/wp-repo-standard, where every problem is triaged, including ones in the boilerplate:
+   ```bash
+   gh issue create --repo wpgenius/wp-repo-standard --title "…" --body-file <file>
+   ```
+   Without `gh` signed in, give the user the text and https://github.com/wpgenius/wp-repo-standard/issues/new to paste it into.
+
+If the user says no, drop it. Never send a report without showing it first.
 
 ## What the standard gives a repo
 

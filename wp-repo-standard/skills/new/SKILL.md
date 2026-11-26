@@ -84,3 +84,6 @@ gh run list --repo OWNER/SLUG --workflow release.yml --limit 1
 Give the release URL, or the error.
 
 Then remind the user that every further change goes issue → branch → PR.
+
+## Last: report problems with this plugin
+If this run hit problems in the plugin or the standard (not in the repo), follow "Report problems with this plugin" in the rules.
