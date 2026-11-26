@@ -2,6 +2,11 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.10 (2026-11-26)
+
+* Pin the downloaded standard to a checked commit (#55)
+* Reword the remaining download-and-run lines in adopt (#56)
+
 ## 1.1.9 (2026-11-26)
 
 * Use the boilerplate's pre-submission scripts and asset guard (#53)
