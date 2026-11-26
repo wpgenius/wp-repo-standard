@@ -46,6 +46,7 @@ Before creating anything, confirm the plan in one message:
    - **Public repo:** keep a "Try it in your browser" link to `https://playground.wordpress.net/?blueprint-url=https://raw.githubusercontent.com/OWNER/SLUG/main/.wordpress-org/blueprints/blueprint.json`. It works from the first release on.
    - **Private repo:** leave the Playground link out (Playground can't download a private release). The blueprint file can stay; it isn't shipped.
    - Remove the boilerplate's `.wordpress-org/screenshot-*` files, or replace them with this plugin's.
+   - **WordPress skills:** keep `.claude/skills/wp-plugin-development`. Keep `.claude/skills/wp-plugin-directory-guidelines` for a public plugin or a `wporg` deploy target, and remove it otherwise.
 6. **Check:**
    - No leftover boilerplate names (anything unintended is a miss):
      ```bash

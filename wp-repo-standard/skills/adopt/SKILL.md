@@ -57,6 +57,7 @@ Create one issue per change you'll actually make. Each body says what's wrong no
 - **Linked issue check on PRs:** the workflow, with the chosen on/off setting.
 - **Dependabot for GitHub Actions.**
 - **GitHub setup script:** `bin/setup-github.sh`.
+- **WordPress skills for Claude:** plugins only, when the standard has them (audit section 5).
 - **Tooling group:** if chosen (name PHPStan and Plugin Check in it, and any job kept report-only).
 - **Community files:** if chosen.
 - **Playground demo:** if chosen.
@@ -69,7 +70,8 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - `.github/workflows/release.yml`, `deploy.yml` and `linked-issue.yml`;
   - `.github/scripts/*`;
   - `.github/dependabot.yml`;
-  - `bin/setup-github.sh` (keep it executable).
+  - `bin/setup-github.sh` (keep it executable);
+  - for a plugin, the WordPress skills from `$STD/.claude/skills/` as whole folders: `wp-plugin-development` always, and `wp-plugin-directory-guidelines` for a public plugin or a WordPress.org deploy. They replace any older copy of the same folder; other skills in `.claude/skills/` stay. `.distignore` already keeps `/.claude` out of the zip.
 - **Merge** each of `.gitignore` and `.distignore`:
   as "Merge an ignore file" in the rules describes, including reading the "Project-specific" block afterwards.
 - **`readme.txt`:**
