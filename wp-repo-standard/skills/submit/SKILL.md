@@ -43,7 +43,7 @@ Read every PHP file, the JS sources, `block.json` files, the plugin header and `
 - **Plugin URI** differs from **Author URI**; WordPress.org's upload form refuses them when equal.
 - **Contributors:** each is a real WordPress.org username (`https://profiles.wordpress.org/<name>/` exists).
 - **Tested up to** is the current WordPress version; **Stable tag** equals the header `Version:`; at most 5 tags.
-- **Changelog wording:** release changelog lines come from issue titles. Look at the titles of recent closed issues: they're user-facing, so no "Gutenberg" and no CI or tooling noise. Reword such issues before the next release, or label them `changelog:skip` if the repo's release script supports that label (`grep -n changelog:skip .github/scripts/release-plan.sh`).
+- **Changelog wording:** release changelog lines come from issue titles. Look at the titles of recent closed issues: they're user-facing, so no "Gutenberg" and no CI or tooling noise. Reword such issues before the next release, or label dev-only ones `changelog:skip`, which the standard's release script leaves out of the changelog (`setup-github.sh` creates the label; check the repo's `release-plan.sh` has it, else update it through adopt).
 
 **Licences**
 - The plugin is GPL-2.0-or-later or compatible, with a licence file.
@@ -58,7 +58,13 @@ Run "Preview the package" from the rules on the latest release tag's contents, o
 - **Plugin Check:** with the experimental checks, on the packaged files, not the repo. CI's Plugin Check job covers the basic run; read its last result.
 - **Runtime:** a clean site with `WP_DEBUG` on, on the lowest and highest PHP the plugin supports: activation prints nothing, the front end, settings pages and blocks render, uninstall cleans up, and the debug log stays empty.
 
-Use the repo's own pre-submission scripts if it has them (the boilerplate's README names them). If it has none, say which checks couldn't run, and offer to add the boilerplate's scripts through `/wp-repo-standard:adopt`. Report every result with numbers (checks run, errors, warnings, notices).
+Run them with the repo's own `bin/presubmit/run.sh` (the boilerplate's, added by adopt's tooling group):
+```bash
+bin/presubmit/run.sh          # all checks; or: pcp, runtime
+```
+It packages the plugin with `.distignore`, runs Plugin Check with every static check (experimental ones included) and the `WP_DEBUG` runs on the "Requires PHP" version and the newest PHP, and writes the results to `release/presubmit/`. Read the header comment of `run.sh` for what it needs (Node and a network connection) and say so before running it. Read the result files, not only the exit code.
+
+If the repo has no `bin/presubmit/`, say which checks couldn't run, and offer to add the scripts through `/wp-repo-standard:adopt`. Report every result with numbers (checks run, errors, warnings, notices).
 
 ## 4. Fix
 Follow the working rules: one issue per finding, all fixes in one PR, merge only when the user asks. Title each issue as the changelog line it becomes. Each fix gets tested before the PR (the checks in step 3, or the part of them it affects).
