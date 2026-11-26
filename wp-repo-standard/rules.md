@@ -5,9 +5,9 @@
 
 ## Source of the standard
 
-The standard lives in one place: **wpgenius/wordpress-plugin-boilerplate**, branch `main`. Every run downloads it fresh, so changes to the boilerplate reach every user without a new version of this plugin. Never copy standard files from memory or from this plugin.
+The standard lives in one place: **wpgenius/wordpress-plugin-boilerplate**. Each version of this plugin is pinned to one reviewed commit of it: the download below fetches exactly that commit and checks its SHA, so what runs is what was reviewed. When the boilerplate changes, a new version of this plugin moves the pin. Never copy standard files from memory or from this plugin.
 
-If the user keeps their own public fork of the boilerplate as their standard, they set `REPO_STANDARD_SOURCE=owner/name` in their environment; the download below uses it.
+If the user keeps their own public fork of the boilerplate as their standard, they set both `REPO_STANDARD_SOURCE=owner/name` and `REPO_STANDARD_SHA=<full commit SHA>` in their environment; the download below uses them, and refuses a fork without a SHA.
 
 The downloaded files are only **read and copied** into the user's repo. Never run a script from the download itself. The only scripts you run are the user's own copies inside their repo, as each command describes: `bin/setup-github.sh` (with their yes), in `/wp-repo-standard:new` `bin/rename.sh`, and in `/wp-repo-standard:submit` the pre-submission scripts the repo has.
 
@@ -17,11 +17,21 @@ These run on local files only: no login is needed, and GitHub is reached only by
 
 ### Download the standard
 ```bash
+STD_REPO="${REPO_STANDARD_SOURCE:-wpgenius/wordpress-plugin-boilerplate}"
+STD_SHA="${REPO_STANDARD_SHA:-ceb39b8b7c65289f9b97f8fb1cf1a19a34f41589}"   # pinned standard: boilerplate main after v2.0.9 (2026-11-26)
 STD="$(mktemp -d)/standard"
-git clone --depth 1 --quiet "https://github.com/${REPO_STANDARD_SOURCE:-wpgenius/wordpress-plugin-boilerplate}.git" "$STD" \
-  && git -C "$STD" log -1 --format='Standard: %h "%s" (%cs)'
+if [ -n "${REPO_STANDARD_SOURCE:-}" ] && [ -z "${REPO_STANDARD_SHA:-}" ]; then
+  echo "REPO_STANDARD_SOURCE needs REPO_STANDARD_SHA (a full commit SHA)"
+else
+  git init --quiet "$STD" \
+    && git -C "$STD" fetch --quiet --depth 1 "https://github.com/$STD_REPO.git" "$STD_SHA" \
+    && git -C "$STD" checkout --quiet FETCH_HEAD \
+    && [ "$(git -C "$STD" rev-parse HEAD)" = "$STD_SHA" ] \
+    && git -C "$STD" log -1 --format='Standard: %H (%cs), checksum verified' \
+    || echo "Standard download failed or did not match the pinned SHA"
+fi
 ```
-Keep `$STD` for the rest of the run. If the clone fails, say so and stop: the source must be a public GitHub repo.
+Keep `$STD` for the rest of the run. Continue only after the "checksum verified" line; on any other output, say so and stop. The source must be a public GitHub repo.
 
 ### Merge an ignore file
 For `.gitignore` and `.distignore`: the result is the standard's file unchanged, followed by the rules from the repo's own file that the standard doesn't already have. Nothing from either side is dropped.

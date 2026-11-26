@@ -26,6 +26,8 @@ Every change starts with an issue. Open a PR that closes it (`Closes #N`); CI an
 
 Merges that change anything in `wp-repo-standard/` are released automatically: the version in `wp-repo-standard/.claude-plugin/plugin.json` is bumped (patch, or minor/major with a `release:minor`/`release:major` label), `CHANGELOG.md` gets an entry, and a GitHub release is published. Other changes make no release. The plugin directory picks up new commits and reviews each new version before it goes live.
 
+The skills download one pinned commit of the boilerplate (`STD_SHA` in `wp-repo-standard/rules.md`) and check its SHA, as the plugin directory requires. The "Standard pin" workflow checks weekly whether the boilerplate's `main` has moved and opens an issue and a PR that moves the pin; close and reopen that PR to start CI. Merging it releases a new plugin version.
+
 Test locally without installing:
 
 ```bash

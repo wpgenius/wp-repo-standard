@@ -2,7 +2,7 @@
 
 A Claude Code plugin that sets up WordPress plugin and theme repositories the same way every time: automatic versioned releases, a deploy workflow with an on/off switch, a "linked issue" check, Dependabot and a protected `main`, where every change goes issue → branch → pull request → squash merge.
 
-The standard itself lives in [wpgenius/wordpress-plugin-boilerplate](https://github.com/wpgenius/wordpress-plugin-boilerplate). Each run downloads its latest `main`, so improvements to the boilerplate reach you without updating this plugin.
+The standard itself lives in [wpgenius/wordpress-plugin-boilerplate](https://github.com/wpgenius/wordpress-plugin-boilerplate). Each version of this plugin is pinned to one reviewed commit of it, checked by SHA on download. Improvements to the boilerplate reach you with the next plugin update.
 
 ## Commands
 
@@ -55,7 +55,7 @@ Deploys (FTPS, SSH, WordPress.org SVN) run later in your repo's GitHub Actions, 
 
 ## Use your own standard
 
-Fork the boilerplate (keep the fork public), change it, and set `REPO_STANDARD_SOURCE=your-org/your-boilerplate` in your environment. The commands then use your fork as the standard.
+Fork the boilerplate (keep the fork public), change it, and set `REPO_STANDARD_SOURCE=your-org/your-boilerplate` and `REPO_STANDARD_SHA=<full commit SHA>` in your environment. The commands then use that commit of your fork as the standard.
 
 ## Contributing
 

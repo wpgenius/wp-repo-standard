@@ -1,0 +1,92 @@
+name: Standard pin
+
+# The skills download one pinned commit of wpgenius/wordpress-plugin-boilerplate
+# (STD_SHA in wp-repo-standard/rules.md) and check its SHA, as the Claude plugin
+# directory requires. Once a week (or when run by hand) this compares the pin
+# with the boilerplate's main; if main has moved, it opens an issue and a pull
+# request that moves the pin. Merging that PR releases a new plugin version,
+# which the plugin directory reviews before it goes live.
+#
+# Pull requests opened with the workflow token don't start other workflows, so
+# CI and the linked-issue check stay pending: close and reopen the PR (or push
+# a commit to it) to run them. Needs "Allow GitHub Actions to create and
+# approve pull requests" (Settings → Actions → General).
+
+on:
+  schedule:
+    - cron: '23 5 * * 1'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  pull-requests: write
+  issues: write
+
+concurrency:
+  group: standard-pin
+  cancel-in-progress: false
+
+env:
+  STANDARD: wpgenius/wordpress-plugin-boilerplate
+  RULES: wp-repo-standard/rules.md
+  BRANCH: standard-pin
+
+jobs:
+  pin:
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Compare the pin with the boilerplate's main
+        id: pin
+        run: |
+          set -euo pipefail
+          if [ -n "$(gh pr list --head "$BRANCH" --state open --json number --jq '.[].number')" ]; then
+            echo "A pin pull request is already open; merge or close it first."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          current=$(grep -oE 'REPO_STANDARD_SHA:-[0-9a-f]{40}' "$RULES" | cut -d- -f2)
+          [ -n "$current" ] || { echo "::error::No pinned SHA found in $RULES"; exit 1; }
+          latest=$(gh api "repos/$STANDARD/commits/main" --jq .sha)
+          if [ "$current" = "$latest" ]; then
+            echo "The pin matches $STANDARD main ($latest); nothing to do."
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            exit 0
+          fi
+          date=$(gh api "repos/$STANDARD/commits/$latest" --jq '.commit.committer.date[:10]')
+          tag=$(gh release view --repo "$STANDARD" --json tagName --jq .tagName 2>/dev/null || echo "")
+          label="boilerplate main${tag:+ after $tag} ($date)"
+          sed -i -E "s|REPO_STANDARD_SHA:-[0-9a-f]{40}\}\"(.*)# pinned standard: .*|REPO_STANDARD_SHA:-$latest}\"\1# pinned standard: $label|" "$RULES"
+          grep -q "REPO_STANDARD_SHA:-$latest" "$RULES" || { echo "::error::Could not update the pin in $RULES"; exit 1; }
+          {
+            echo "changed=true"
+            echo "current=$current"
+            echo "latest=$latest"
+            echo "label=$label"
+          } >> "$GITHUB_OUTPUT"
+
+      - name: Open an issue and a pull request
+        if: steps.pin.outputs.changed == 'true'
+        env:
+          CURRENT: ${{ steps.pin.outputs.current }}
+          LATEST: ${{ steps.pin.outputs.latest }}
+          LABEL: ${{ steps.pin.outputs.label }}
+        run: |
+          set -euo pipefail
+          compare="https://github.com/$STANDARD/compare/$CURRENT...$LATEST"
+          issue=$(gh issue create \
+            --title "Pin the standard to $LABEL" \
+            --body "$STANDARD main moved since the pinned commit. Changes: $compare" \
+            | sed 's#.*/##')
+          git config user.name 'github-actions[bot]'
+          git config user.email '41898282+github-actions[bot]@users.noreply.github.com'
+          git switch -c "$BRANCH"
+          git add "$RULES"
+          git commit --quiet -m "Pin the standard to $LABEL"
+          git push --force --quiet origin "$BRANCH"
+          gh pr create --head "$BRANCH" \
+            --title "Pin the standard to $LABEL" \
+            --body "$(printf 'Closes #%s\n\nMoves the pinned standard from `%s` to `%s` (%s).\n\nWhat changed in the boilerplate: %s\n\nCheck the changes still fit the skills (file names they copy or run, rename options, script headers) before merging. Merging releases a new plugin version.\n\nCI does not start on pull requests opened by this workflow: close and reopen this PR to run the checks.' "$issue" "$CURRENT" "$LATEST" "$LABEL" "$compare")"
