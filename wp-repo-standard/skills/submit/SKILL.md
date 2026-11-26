@@ -56,7 +56,7 @@ Read every PHP file, the JS sources, `block.json` files, the plugin header and `
 Run "Preview the package" from the rules on the latest release tag's contents, or on `main`. The main file, `build/`, `languages/` and bundled libraries with their licences must be in it; nothing dev-only.
 
 ## 3. Checks
-- **PHPCS:** `vendor/bin/phpcs --report=summary` must have scanned the plugin's files, not 0. In a Claude worktree an absolute `/.claude/*` exclude hides every file, so a local pass can hide errors CI then reports (see adopt step 5, "PHPCS really scans").
+- **PHPCS:** `vendor/bin/phpcs --report=summary` must have scanned the plugin's files (not 0), and nothing under `release/`, the pre-submission output. In a Claude worktree an absolute `/.claude/*` exclude hides every file, so a local pass can hide errors CI then reports (see adopt step 5, "PHPCS really scans").
 - **Plugin Check:** with the experimental checks, on the packaged files, not the repo. CI's Plugin Check job covers the basic run; read its last result.
 - **Runtime:** a clean site with `WP_DEBUG` on, on the lowest and highest PHP the plugin supports: activation prints nothing, the front end, settings pages and blocks render, uninstall cleans up, and the debug log stays empty.
 
