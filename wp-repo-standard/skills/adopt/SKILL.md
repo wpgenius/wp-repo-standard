@@ -95,12 +95,7 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
     - `js-css-lint`: without a build step, remove its `npm run build` and "build/ is committed" steps and rename it "JS/CSS lint"; without any JS or CSS, remove the job.
     - Then check the YAML (`actionlint` if installed) and that every name in `needs:` is a job that exists.
   - **Fit `package.json`:** without a build step or integration tests, keep only `@wordpress/scripts` and the `lint`, `lint:js`, `lint:css` and `format` scripts (pointed at this plugin's JS and CSS folders), and drop `build`, `start`, `env`, `test:integration*` and the block, interactivity and `@wordpress/env` dependencies. Likewise drop `.wp-env.json` and the integration PHPUnit config if copied.
-  - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch first (for example `nvm install && nvm use`, which reads `.nvmrc`). If they can't, run npm under a matching Node for this session only. `npx -y node@22 npm …` does **not** do that; use:
-    ```bash
-    NPM_CLI="$(dirname "$(readlink -f "$(command -v npm)")")/npm-cli.js"
-    npx -y node@22.12 "$NPM_CLI" install    # and the same for: run lint, run format
-    ```
-    (`node@22.12` or later meets the floor of the standard's `engines`.)
+  - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch to the version in `.nvmrc` with their Node version manager, following that tool's own instructions, then continue. If they can't switch now, don't run the lint tools locally: say so in the PR, and let CI run them.
   - **Integrations:** if the audit found Elementor, WooCommerce or ACF code, PHPStan needs stubs for those classes: a stubs package where one exists (for example `php-stubs/woocommerce-stubs`, `php-stubs/acf-pro-stubs`) as a dev dependency listed under `scanFiles`, or a small stub file of the classes and methods the plugin uses, under `tests/phpstan/` and listed in `scanFiles`. Never `ignoreErrors` whole classes.
   - Run `composer phpstan` and `npm run lint` once each, and tell the user how many issues each reports, so the choice of blocking or report-only is informed.
   - Regenerate the lock files with `composer install` and `npm install`. Never copy the boilerplate's lock files.
