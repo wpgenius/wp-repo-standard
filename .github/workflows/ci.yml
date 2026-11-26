@@ -29,6 +29,9 @@ jobs:
       # that aren't Verified: Markdown, text, JSON, YAML and PNG/JPEG/GIF/WebP/ICO
       # images (plus LICENSE), none starting with "#!", each under 256 KiB, no
       # symlinks. Keep scripts outside the plugin folder.
+      - name: Root icon matches the plugin icon
+        run: cmp .claude-plugin/icon.png wp-repo-standard/.claude-plugin/icon.png || { echo "::error::.claude-plugin/icon.png differs from wp-repo-standard/.claude-plugin/icon.png. The plugin directory reads the root copy; update both."; exit 1; }
+
       - name: Plugin folder contains only allowed files
         run: |
           set -euo pipefail
