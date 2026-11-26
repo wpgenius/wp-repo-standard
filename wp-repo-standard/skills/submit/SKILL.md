@@ -65,7 +65,7 @@ bin/presubmit/run.sh          # all checks; or: pcp, runtime
 ```
 It packages the plugin with `.distignore`, runs Plugin Check with every static check (experimental ones included) and the `WP_DEBUG` runs on the "Requires PHP" version and the newest PHP, and writes the results to `release/presubmit/`. Read the header comment of `run.sh` for what it needs (Node and a network connection) and say so before running it. Read the result files, not only the exit code.
 
-Before trusting the results, check the scripts were adapted to this plugin (adopt step 4, "Adapt them to this plugin"): a runtime run that still renders the boilerplate's example blocks or expects its cron and table proves nothing about this plugin. Adapt them first, as their own issue.
+Before trusting the results, check `bin/presubmit/plugin.php` describes this plugin (adopt step 4, "Adapt them to this plugin"): one that still renders the boilerplate's example blocks and shortcode proves nothing about this plugin. Write it first, as its own issue. A repo with older, plugin-specific copies of the scripts gets the generic ones from the standard plus its own `plugin.php`.
 
 If the repo has no `bin/presubmit/`, say which checks couldn't run, and offer to add the scripts through `/wp-repo-standard:adopt`. Report every result with numbers (checks run, errors, warnings, notices).
 
