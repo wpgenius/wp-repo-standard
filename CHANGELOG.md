@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.12 (2026-11-26)
+
+* Adapt the pre-submission scripts and check unguarded asset files (#61)
+
 ## 1.1.11 (2026-11-26)
 
 * Remove the icon from the plugin folder until the organisation is verified (#58)
