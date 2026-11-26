@@ -2,6 +2,19 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.9 (2026-11-26)
+
+* Use the boilerplate's pre-submission scripts and asset guard (#53)
+
+## 1.1.8 (2026-11-26)
+
+* Adopt and new add the WordPress agent skills (#50)
+* Add /wp-repo-standard:submit for WordPress.org submissions (#51)
+
+## 1.1.7 (2026-11-26)
+
+* Remove the download-and-run Node command from adopt (#48)
+
 ## 1.1.6 (2026-11-15)
 
 * Playground blueprint: no core-file sample content, run it once before the PR (#39)

@@ -37,7 +37,7 @@ Ask everything in one round, with the recommended answer first. A question tool 
   - *wporg*. Plugins only: themes aren't deployed to WordPress.org by SVN.
 
   `DEPLOY_ENABLED` stays `false` whatever they choose.
-- **Tooling group:** add CI, coding standards, PHPStan and local Docker from the boilerplate? Warn that existing code may fail the jobs: With `ci.yml` in the repo, the ruleset requires the "CI" check, so a failing job blocks every merge until it's fixed or made report-only.
+- **Tooling group:** add CI, coding standards, PHPStan, local Docker and the pre-submission checks from the boilerplate? Warn that existing code may fail the jobs: With `ci.yml` in the repo, the ruleset requires the "CI" check, so a failing job blocks every merge until it's fixed or made report-only.
   - PHPCS and PHPStan usually report many issues in older code. Offer to keep either job report-only (`continue-on-error: true`) or to drop it.
   - Plugin Check fails if `readme.txt` "Tested up to" is behind the latest WordPress (the audit says) and on anything WordPress.org would reject. Offer to drop the job for private client plugins.
   - JS/CSS lint usually reports many issues too (mostly formatting, which `npm run format` fixes). Same choice: blocking, report-only or dropped.
@@ -57,6 +57,7 @@ Create one issue per change you'll actually make. Each body says what's wrong no
 - **Linked issue check on PRs:** the workflow, with the chosen on/off setting.
 - **Dependabot for GitHub Actions.**
 - **GitHub setup script:** `bin/setup-github.sh`.
+- **WordPress skills for Claude:** plugins only, when the standard has them (audit section 5).
 - **Tooling group:** if chosen (name PHPStan and Plugin Check in it, and any job kept report-only).
 - **Community files:** if chosen.
 - **Playground demo:** if chosen.
@@ -69,7 +70,8 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
   - `.github/workflows/release.yml`, `deploy.yml` and `linked-issue.yml`;
   - `.github/scripts/*`;
   - `.github/dependabot.yml`;
-  - `bin/setup-github.sh` (keep it executable).
+  - `bin/setup-github.sh` (keep it executable);
+  - for a plugin, the WordPress skills from `$STD/.claude/skills/` as whole folders: `wp-plugin-development` always, and `wp-plugin-directory-guidelines` for a public plugin or a WordPress.org deploy. They replace any older copy of the same folder; other skills in `.claude/skills/` stay. `.distignore` already keeps `/.claude` out of the zip.
 - **Merge** each of `.gitignore` and `.distignore`:
   as "Merge an ignore file" in the rules describes, including reading the "Project-specific" block afterwards.
 - **`readme.txt`:**
@@ -95,12 +97,8 @@ Create a branch from an up-to-date default branch, e.g. `git switch -c repo-stan
     - `js-css-lint`: without a build step, remove its `npm run build` and "build/ is committed" steps and rename it "JS/CSS lint"; without any JS or CSS, remove the job.
     - Then check the YAML (`actionlint` if installed) and that every name in `needs:` is a job that exists.
   - **Fit `package.json`:** without a build step or integration tests, keep only `@wordpress/scripts` and the `lint`, `lint:js`, `lint:css` and `format` scripts (pointed at this plugin's JS and CSS folders), and drop `build`, `start`, `env`, `test:integration*` and the block, interactivity and `@wordpress/env` dependencies. Likewise drop `.wp-env.json` and the integration PHPUnit config if copied.
-  - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch first (for example `nvm install && nvm use`, which reads `.nvmrc`). If they can't, run npm under a matching Node for this session only. `npx -y node@22 npm …` does **not** do that; use:
-    ```bash
-    NPM_CLI="$(dirname "$(readlink -f "$(command -v npm)")")/npm-cli.js"
-    npx -y node@22.12 "$NPM_CLI" install    # and the same for: run lint, run format
-    ```
-    (`node@22.12` or later meets the floor of the standard's `engines`.)
+  - **Pre-submission checks:** copy `bin/presubmit/` (keep `run.sh` executable). They run Plugin Check and `WP_DEBUG` runs in WordPress Playground on the packaged files, for `/wp-repo-standard:submit`. With a build step, also copy `bin/asset-guard.js` and add `"postbuild": "node bin/asset-guard.js"` to `package.json`, so the generated `build/*.asset.php` files get the `ABSPATH` guard.
+  - **Node:** if the audit found `node -v` older than the standard's `engines`, the lint tools crash. Ask the user to switch to the version in `.nvmrc` with their Node version manager, following that tool's own instructions, then continue. If they can't switch now, don't run the lint tools locally: say so in the PR, and let CI run them.
   - **Integrations:** if the audit found Elementor, WooCommerce or ACF code, PHPStan needs stubs for those classes: a stubs package where one exists (for example `php-stubs/woocommerce-stubs`, `php-stubs/acf-pro-stubs`) as a dev dependency listed under `scanFiles`, or a small stub file of the classes and methods the plugin uses, under `tests/phpstan/` and listed in `scanFiles`. Never `ignoreErrors` whole classes.
   - Run `composer phpstan` and `npm run lint` once each, and tell the user how many issues each reports, so the choice of blocking or report-only is informed.
   - Regenerate the lock files with `composer install` and `npm install`. Never copy the boilerplate's lock files.
