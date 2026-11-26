@@ -34,6 +34,7 @@ Read every PHP file, the JS sources, `block.json` files, the plugin header and `
 - **Lifecycle:** deactivation clears scheduled events; uninstall removes options, transients and caches (and says what it keeps on purpose).
 - **Versions:** editor and front-end scripts use the plugin's version constant, not a fixed `'1.0.0'`, so browsers load new files after updates.
 - **Translations:** no `load_plugin_textdomain()` (WordPress.org language packs load on demand, and Plugin Check flags it). `block.json` has `textdomain`. The `.pot` scans `build/`, not the block sources `.distignore` drops, because JSON translations are matched against `build/<block>/index.js`.
+- **Unused code:** helpers nothing calls, for example the boilerplate's `Api` methods (`render_template`, `locate_template`, `send_email`, `replace_placeholders`, `verify_request`); find callers with `grep -rn` before listing one. Unused code draws review notes, and so does `extract()` anywhere, even behind a phpcs:ignore: pass an array instead.
 - **Remote code:** no tracking, no code or assets loaded from other servers unless the readme discloses it (step 2, readme).
 
 **readme.txt and header**
@@ -63,6 +64,8 @@ Run them with the repo's own `bin/presubmit/run.sh` (the boilerplate's, added by
 bin/presubmit/run.sh          # all checks; or: pcp, runtime
 ```
 It packages the plugin with `.distignore`, runs Plugin Check with every static check (experimental ones included) and the `WP_DEBUG` runs on the "Requires PHP" version and the newest PHP, and writes the results to `release/presubmit/`. Read the header comment of `run.sh` for what it needs (Node and a network connection) and say so before running it. Read the result files, not only the exit code.
+
+Before trusting the results, check the scripts were adapted to this plugin (adopt step 4, "Adapt them to this plugin"): a runtime run that still renders the boilerplate's example blocks or expects its cron and table proves nothing about this plugin. Adapt them first, as their own issue.
 
 If the repo has no `bin/presubmit/`, say which checks couldn't run, and offer to add the scripts through `/wp-repo-standard:adopt`. Report every result with numbers (checks run, errors, warnings, notices).
 

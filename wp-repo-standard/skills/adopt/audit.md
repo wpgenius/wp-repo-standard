@@ -90,6 +90,7 @@ Report each:
 - **Unit tests:** no `tests/Unit` and no `phpunit.xml.dist` means the tooling's `composer test` step, the PHPUnit dev dependencies and the test bootstrap don't apply.
 - **Integration tests:** none means the tooling's integration job and the `env`/`test:integration` scripts and `@wordpress/env` don't apply.
 - **Integrations:** code that extends Elementor, WooCommerce or ACF classes makes PHPStan report "class not found" for them until stubs are added (step 4).
+- **Asset guard:** `find build -name '*.asset.php' -exec grep -L ABSPATH {} + 2>/dev/null` lists generated asset files without the `ABSPATH` guard (repos built before the standard had `bin/asset-guard.js`). Any hit: add the asset guard and its `postbuild` step (step 4), rebuild, and commit `build/`.
 - **Node:** compare `node -v` with the standard's `engines` (in `$STD/package.json`). An older Node makes `npm run lint` crash (for example ERR_REQUIRE_ESM on Node 22.10).
 
 ## 8. Ignored files the plugin may need

@@ -90,6 +90,7 @@ If `gh` is missing, not signed in, or not an admin (common in cloud sessions), d
 - **Skip markers:** never write `[skip ci]`, `[ci skip]`, `[no ci]`, `[skip actions]` or `[actions skip]` in a PR title or body, not even quoted. The squash commit inherits it and GitHub then skips every workflow, including the release.
 - **`main`:** never push to it directly. The only exception is the very first commit of a brand-new repo in `/wp-repo-standard:new`.
 - **Secrets:** never ask the user to paste a secret value into the chat. Give them the exact `gh secret set NAME --repo OWNER/REPO` command to run themselves.
+- **Shell:** commands must work in zsh as well as bash. zsh doesn't split unquoted variables or `${var:+--flag "$var"}` into separate words, so write optional flags out explicitly (for example `gh issue create --label changelog:skip …`), and avoid globs that fail when nothing matches.
 - **Outward-facing steps:** creating a repo, applying GitHub settings, creating a deploy key, opening or merging a PR. Confirm each one first, unless the user already asked for it in this conversation.
 - **CI:** after opening a PR, check CI once and report the result. Don't poll in a loop, and merge only when the user asks.
 
