@@ -2,6 +2,10 @@
 
 Written by the release workflow: one entry per release, one line per issue it closed.
 
+## 1.1.18 (2026-11-27)
+
+* Pin the standard to boilerplate main after #116 (#73)
+
 ## 1.1.17 (2026-11-27)
 
 * adopt: re-run can't tell fitted tooling files from upstream changes; presubmit plugin.php gaps (#70)
