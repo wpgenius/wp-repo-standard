@@ -18,7 +18,7 @@ These run on local files only: no login is needed, and GitHub is reached only by
 ### Download the standard
 ```bash
 STD_REPO="${REPO_STANDARD_SOURCE:-wpgenius/wordpress-plugin-boilerplate}"
-STD_SHA="${REPO_STANDARD_SHA:-43f11c050b966f96059e55cf1e146c0cc8d15b1c}"   # pinned standard: boilerplate main after v2.0.10, PHPCS excludes fix (2026-11-26)
+STD_SHA="${REPO_STANDARD_SHA:-dfe798f5f5aa215ca3e8aa8b89f2daefc73a27d9}"   # pinned standard: boilerplate main after v2.0.10, runtime check own_screen (2026-11-27)
 STD="$(mktemp -d)/standard"
 if [ -n "${REPO_STANDARD_SOURCE:-}" ] && [ -z "${REPO_STANDARD_SHA:-}" ]; then
   echo "REPO_STANDARD_SOURCE needs REPO_STANDARD_SHA (a full commit SHA)"
